@@ -141,6 +141,9 @@
   <p><a href="index.html">Back to OLDORA</a></p>
 
   <script>
+  const supabaseUrl = 'https://tjwvatzgasvos.supabase.co';
+const supabaseKey = 'sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb';
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
     let signUpMode = true;
 
     const heading = document.getElementById(
@@ -183,20 +186,35 @@
         if (event.key === "Enter" ||
             event.key === " ") {
           event.preventDefault();
-          toggleMode();
-        }
-      }
-    );
+     
+document.getElementById("accountForm").addEventListener("submit", async function(event) {
+  event.preventDefault();
 
-    document.getElementById(
-      "accountForm"
-    ).addEventListener("submit", function(event) {
-      event.preventDefault();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
 
-      message.textContent =
-        "Account connection is being prepared. " +
-        "Please do not enter real credentials yet.";
-    });
+  submitBtn.disabled = true;
+  message.textContent = "Please wait...";
+
+  try {
+    const result = signUpMode
+      ? await supabaseClient.auth.signUp({ email, password })
+      : await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (result.error) {
+      message.textContent = result.error.message;
+    } else if (signUpMode) {
+      message.textContent = "Account created. Please check your email if confirmation is required.";
+    } else {
+      message.textContent = "Logged in successfully!";
+    }
+  } catch (error) {
+    message.textContent = "Connection error. Please try again.";
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+     
   </script>
 </body>
 </html>
