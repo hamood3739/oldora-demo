@@ -198,7 +198,6 @@ document.getElementById("accountForm").addEventListener("submit", async function
 
   submitBtn.disabled = true;
   message.textContent = "Please wait...";
-
   try {
     const result = signUpMode
       ? await supabaseClient.auth.signUp({ email, password })
@@ -209,8 +208,7 @@ document.getElementById("accountForm").addEventListener("submit", async function
     } else if (signUpMode) {
       message.textContent = "Account created. Please check your email if confirmation is required.";
     } else {
-      message.textContent = "Logged in successfully!";
-    }
+      window.location.replace("dashboard.html");
   } catch (error) {
     message.textContent = "Connection error. Please try again.";
   } finally {
