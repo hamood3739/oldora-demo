@@ -186,7 +186,10 @@ const supabaseKey = 'sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb';
         if (event.key === "Enter" ||
             event.key === " ") {
           event.preventDefault();
-     
+              toggleMode();
+       }
+  }
+);
 document.getElementById("accountForm").addEventListener("submit", async function(event) {
   event.preventDefault();
 
