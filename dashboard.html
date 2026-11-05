@@ -153,6 +153,25 @@ const supabaseKey = 'sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb';
     supabaseUrl,
     supabaseKey
   );
+  
+async function checkLogin() {
+  try {
+    const { data, error } =
+      await supabaseClient.auth.getUser();
+
+    if (error || !data.user) {
+      window.location.replace("auth.html");
+      return;
+    }
+
+    document.body.style.visibility = "visible";
+  } catch (error) {
+    window.location.replace("auth.html");
+  }
+}
+
+checkLogin();
+
 </script>
 
 </body>
