@@ -1,221 +1,99 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>OLDORA | Your Account</title>
   <style>
-    :root {
-      --gold: #c4a46a;
-      --black: #101010;
-    }
-
+    :root { --gold: #c4a46a; --black: #101010; }
     * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      padding: 35px 20px;
-      min-height: 100vh;
-      background: var(--black);
-      color: #f5f0e6;
-      font-family: Georgia, serif;
-      text-align: center;
-    }
-
-    .logo {
-      font-size: 44px;
-      margin-bottom: 10px;
-    }
-
-    h1 {
-      color: var(--gold);
-      font-size: 40px;
-      letter-spacing: 6px;
-      margin: 10px 0;
-    }
-
-    .tagline {
-      color: #d6c5a6;
-      font-style: italic;
-    }
-
-    .panel {
-      max-width: 420px;
-      margin: 40px auto;
-      padding: 28px 22px;
-      border: 1px solid #59492f;
-      border-radius: 12px;
-      text-align: left;
-    }
-
-    h2 {
-      color: var(--gold);
-      text-align: center;
-    }
-
-    label {
-      display: block;
-      margin: 18px 0 8px;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      background: #202020;
-      border: 1px solid #766448;
-      border-radius: 6px;
-      color: white;
-      font-size: 16px;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 24px;
-      padding: 15px;
-      background: var(--gold);
-      border: none;
-      border-radius: 6px;
-      color: var(--black);
-      font-size: 17px;
-      cursor: pointer;
-    }
-
-    .switch {
-      color: var(--gold);
-      text-align: center;
-      margin-top: 20px;
-      cursor: pointer;
-      text-decoration: underline;
-    }
-
-    .note {
-      color: #b9ad98;
-      font-size: 13px;
-      line-height: 1.7;
-    }
-
+    body { margin: 0; padding: 35px 20px; min-height: 100vh; background: var(--black); color: #f5f0e6; font-family: Georgia, serif; text-align: center; }
+    .logo { font-size: 44px; margin-bottom: 10px; }
+    h1 { color: var(--gold); font-size: 40px; letter-spacing: 6px; margin: 10px 0; }
+    .tagline { color: #d6c5a6; font-style: italic; }
+    .panel { max-width: 420px; margin: 40px auto; padding: 28px 22px; border: 1px solid #59492f; border-radius: 12px; text-align: left; }
+    h2 { color: var(--gold); text-align: center; }
+    label { display: block; margin: 18px 0 8px; }
+    input { width: 100%; padding: 14px; background: #202020; border: 1px solid #766448; border-radius: 6px; color: white; font-size: 16px; }
+    button { width: 100%; margin-top: 24px; padding: 15px; background: var(--gold); border: none; border-radius: 6px; color: var(--black); font-size: 17px; cursor: pointer; }
+    button:disabled { opacity: .65; cursor: wait; }
+    .switch { color: var(--gold); text-align: center; margin-top: 20px; cursor: pointer; text-decoration: underline; }
+    .switch:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
+    .note { color: #b9ad98; font-size: 13px; line-height: 1.7; }
     a { color: var(--gold); }
   </style>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
   <div class="logo">⌛</div>
   <h1>OLDORA</h1>
   <p class="tagline">Every Item Has a Story</p>
-
   <section class="panel">
     <h2 id="heading">Create Account</h2>
-
     <form id="accountForm">
       <label for="email">Email Address</label>
-      <input id="email" type="email"
-             autocomplete="email" required>
-
+      <input id="email" type="email" autocomplete="email" required>
       <label for="password">Password</label>
-      <input id="password" type="password"
-             minlength="12" required>
-
-      <p class="note">
-        Use at least 12 characters, including
-        uppercase and lowercase letters
-        and a number.
-      </p>
-
-      <button id="submitBtn" type="submit">
-        Sign Up
-      </button>
+      <input id="password" type="password" minlength="12" required>
+      <p class="note">Use at least 12 characters, including uppercase and lowercase letters and a number.</p>
+      <button id="submitBtn" type="submit">Sign Up</button>
     </form>
-
-    <p class="switch" id="switchMode"
-       role="button" tabindex="0">
-      Already have an account? Log In
-    </p>
-
-    <p class="note" id="message"
-       role="status" aria-live="polite"></p>
+    <p class="switch" id="switchMode" role="button" tabindex="0">Already have an account? Log In</p>
+    <p class="note" id="message" role="status" aria-live="polite"></p>
   </section>
-
   <p><a href="index.html">Back to OLDORA</a></p>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script>
-  const supabaseUrl = 'https://hakjlkltjwvatzgasvos.supabase.co';
-const supabaseKey = sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb
-  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseUrl = 'https://hakjlkltjwvatzgasvos.supabase.co';
+    const supabaseKey = 'sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb';
+    let supabaseClient;
     let signUpMode = true;
-
-    const heading = document.getElementById(
-      "heading"
-    );
-    const submitBtn = document.getElementById(
-      "submitBtn"
-    );
-    const switchMode = document.getElementById(
-      "switchMode"
-    );
-    const message = document.getElementById(
-      "message"
-    );
-
+    const heading = document.getElementById('heading');
+    const submitBtn = document.getElementById('submitBtn');
+    const switchMode = document.getElementById('switchMode');
+    const message = document.getElementById('message');
+    const passwordInput = document.getElementById('password');
     function toggleMode() {
       signUpMode = !signUpMode;
-
-      heading.textContent = signUpMode
-        ? "Create Account"
-        : "Welcome Back";
-
-      submitBtn.textContent = signUpMode
-        ? "Sign Up"
-        : "Log In";
-
-      switchMode.textContent = signUpMode
-        ? "Already have an account? Log In"
-        : "New to OLDORA? Create Account";
-
-      message.textContent = "";
+      heading.textContent = signUpMode ? 'Create Account' : 'Welcome Back';
+      submitBtn.textContent = signUpMode ? 'Sign Up' : 'Log In';
+      switchMode.textContent = signUpMode ? 'Already have an account? Log In' : 'New to OLDORA? Create Account';
+      passwordInput.minLength = signUpMode ? 12 : 1;
+      message.textContent = '';
     }
-
-    switchMode.addEventListener(
-      "click", toggleMode
-    );
-
-    switchMode.addEventListener(
-      "keydown", function(event) {
-        if (event.key === "Enter" ||
-            event.key === " ") {
-          event.preventDefault();
-              toggleMode();
-       }
-  }
-);
-document.getElementById("accountForm").addEventListener("submit", async function(event) {
-  event.preventDefault();
-
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-
-  submitBtn.disabled = true;
-  message.textContent = "Please wait...";
-  try {
-    const result = signUpMode
-      ? await supabaseClient.auth.signUp({ email, password })
-      : await supabaseClient.auth.signInWithPassword({ email, password });
-
-    if (result.error) {
-      message.textContent = result.error.message;
-    } else if (signUpMode) {
-      message.textContent = "Account created. Please check your email if confirmation is required.";
-    } else {
-      window.location.replace("dashboard.html");
-  } catch (error) {
-    message.textContent = "Connection error. Please try again.";
-  } finally {
-    submitBtn.disabled = false;
-  }
-});
-     
+    switchMode.addEventListener('click', toggleMode);
+    switchMode.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggleMode();
+      }
+    });
+    document.getElementById('accountForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = passwordInput.value;
+      submitBtn.disabled = true;
+      message.textContent = 'Please wait...';
+      try {
+        if (!supabaseClient) {
+          if (!window.supabase) throw new Error('Supabase library did not load.');
+          supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        }
+        const result = signUpMode
+          ? await supabaseClient.auth.signUp({ email, password })
+          : await supabaseClient.auth.signInWithPassword({ email, password });
+        if (result.error) {
+          message.textContent = result.error.message;
+        } else if (signUpMode) {
+          message.textContent = 'Account created. Please check your email if confirmation is required.';
+        } else {
+          window.location.replace('dashboard.html');
+        }
+      } catch (error) {
+        message.textContent = error.message || 'Connection error. Please try again.';
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
   </script>
 </body>
 </html>
