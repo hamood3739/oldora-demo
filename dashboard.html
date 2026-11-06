@@ -126,6 +126,8 @@ visibility: hidden;
         <input id="itemTitle" maxlength="120" required>
         <label for="itemDescription">Description</label>
         <textarea id="itemDescription" rows="4" required></textarea>
+        <label for="itemPrice">Price (SAR)</label>
+        <input id="itemPrice" type="number" min="1" step="0.01" inputmode="decimal" required>
         <label for="itemAge">Item age (years)</label>
         <input id="itemAge" type="number" min="20" max="1000" required>
         <label for="itemOrigin">Country of origin</label>
@@ -201,6 +203,11 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
     message.textContent = 'Only items at least 20 years old are eligible.';
     return;
   }
+  const price = Number(document.getElementById('itemPrice').value);
+  if (!Number.isFinite(price) || price <= 0) {
+    message.textContent = 'Enter a valid price in SAR.';
+    return;
+  }
   const disclosure = document.getElementById('itemRepairs').value;
   const details = document.getElementById('itemRepairsDetail').value.trim();
   if (disclosure === 'Restored or repaired' && !details) {
@@ -216,6 +223,7 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
       seller_id: user.id,
       title: document.getElementById('itemTitle').value.trim(),
       description: document.getElementById('itemDescription').value.trim(),
+      price: Number(document.getElementById('itemPrice').value),
       item_age: age,
       country_of_origin: document.getElementById('itemOrigin').value.trim(),
       materials: document.getElementById('itemMaterials').value.trim(),
