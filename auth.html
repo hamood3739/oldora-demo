@@ -17,7 +17,7 @@
     input { width: 100%; padding: 14px; background: #202020; border: 1px solid #766448; border-radius: 6px; color: white; font-size: 16px; }
     button { width: 100%; margin-top: 24px; padding: 15px; background: var(--gold); border: none; border-radius: 6px; color: var(--black); font-size: 17px; cursor: pointer; }
     button:disabled { opacity: .65; cursor: wait; }
-    .switch { color: var(--gold); text-align: center; margin-top: 20px; cursor: pointer; text-decoration: underline; }
+    .switch { display: block; width: 100%; color: var(--gold); background: transparent; border: 0; padding: 12px 4px; text-align: center; margin-top: 12px; cursor: pointer; text-decoration: underline; font: inherit; font-size: 16px; }
     .switch:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
     .note { color: #b9ad98; font-size: 13px; line-height: 1.7; }
     a { color: var(--gold); }
@@ -38,7 +38,7 @@
       <p class="note">Use at least 12 characters, including uppercase and lowercase letters and a number.</p>
       <button id="submitBtn" type="submit">Sign Up</button>
     </form>
-    <p class="switch" id="switchMode" role="button" tabindex="0">Already have an account? Log In</p>
+    <button class="switch" id="switchMode" type="button">Already have an account? Log In</button>
     <p class="note" id="message" role="status" aria-live="polite"></p>
   </section>
   <p><a href="index.html">Back to OLDORA</a></p>
@@ -61,12 +61,6 @@
       message.textContent = '';
     }
     switchMode.addEventListener('click', toggleMode);
-    switchMode.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        toggleMode();
-      }
-    });
     document.getElementById('accountForm').addEventListener('submit', async function(event) {
       event.preventDefault();
       const email = document.getElementById('email').value.trim();
