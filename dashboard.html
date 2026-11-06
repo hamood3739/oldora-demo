@@ -136,6 +136,17 @@ visibility: hidden;
         <input id="itemOrigin" required>
         <label for="itemMaterials">Materials</label>
         <input id="itemMaterials" required>
+        <label for="itemCategory">Category</label>
+        <select id="itemCategory" required>
+          <option value="">Select category</option>
+          <option value="Vintage Clocks">Vintage Clocks</option>
+          <option value="Antique Furniture">Antique Furniture</option>
+          <option value="Vintage Jewelry">Vintage Jewelry</option>
+          <option value="Collectibles">Collectibles</option>
+          <option value="Vintage Electronics">Vintage Electronics</option>
+          <option value="Art and Decor">Art and Decor</option>
+          <option value="Other Vintage Items">Other Vintage Items</option>
+        </select>
         <label for="itemCondition">Condition</label>
         <select id="itemCondition" required>
           <option value="">Select condition</option>
@@ -249,6 +260,7 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
       country_of_origin: document.getElementById('itemOrigin').value.trim(),
       materials: document.getElementById('itemMaterials').value.trim(),
       condition: document.getElementById('itemCondition').value,
+      category: document.getElementById('itemCategory').value,
       restoration_repairs: disclosure === 'Restored or repaired' ? details : disclosure,
       status: 'pending',
       age_verified: false
