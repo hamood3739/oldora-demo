@@ -125,6 +125,11 @@ visibility: hidden;
         <label for="itemPhotos">Product Photos (5–10 images)</label>
         <input id="itemPhotos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple>
         <p class="muted">Choose at least 5 clear photos showing all sides and any damage. Maximum 10 photos, 10 MB each.</p>
+        <label for="mainPhoto">Main Photo (cover image)</label>
+        <select id="mainPhoto" disabled required>
+          <option value="">Choose photos first</option>
+        </select>
+        <p class="muted">The first photo is selected automatically. You can change it before submitting.</p>
         <label for="itemVideo">Product Video (optional)</label>
         <input id="itemVideo" type="file" accept="video/mp4,video/quicktime,video/webm">
         <p class="muted">One optional video, maximum 50 MB.</p>
@@ -222,6 +227,23 @@ async function checkLogin() {
 }
 
 checkLogin();
+
+const photosInput = document.getElementById('itemPhotos');
+const mainPhotoSelect = document.getElementById('mainPhoto');
+photosInput.addEventListener('change', () => {
+  const files = Array.from(photosInput.files);
+  mainPhotoSelect.replaceChildren();
+  if (!files.length) {
+    mainPhotoSelect.add(new Option('Choose photos first', ''));
+    mainPhotoSelect.disabled = true;
+    return;
+  }
+  files.forEach((file, index) => {
+    mainPhotoSelect.add(new Option('Photo ' + (index + 1) + ' — ' + file.name, String(index)));
+  });
+  mainPhotoSelect.disabled = false;
+  mainPhotoSelect.value = '0';
+});
 
 document.getElementById('listingForm').addEventListener('submit', async (event) => {
   event.preventDefault();
