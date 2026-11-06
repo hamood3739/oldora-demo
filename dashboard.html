@@ -122,6 +122,14 @@ visibility: hidden;
       <h3>Add a Vintage Item</h3>
       <p>List an authentic vintage item at least 20 years old. All listings are reviewed before publication.</p>
       <form id="listingForm">
+        <label for="itemPhotos">Product Photos (5–10 images)</label>
+        <input id="itemPhotos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple>
+        <p class="muted">Choose at least 5 clear photos showing all sides and any damage. Maximum 10 photos, 10 MB each.</p>
+        <label for="itemVideo">Product Video (optional)</label>
+        <input id="itemVideo" type="file" accept="video/mp4,video/quicktime,video/webm">
+        <p class="muted">One optional video, maximum 50 MB.</p>
+        <p id="mediaMessage" class="muted" role="status" aria-live="polite">Media upload is being configured. You can select files, but submitting them is not yet available.</p>
+
         <label for="itemTitle">Item title</label>
         <input id="itemTitle" maxlength="120" required>
         <label for="itemDescription">Description</label>
@@ -164,13 +172,6 @@ visibility: hidden;
         </select>
         <label for="itemRepairsDetail">Repair details (if applicable)</label>
         <textarea id="itemRepairsDetail" rows="2" placeholder="Describe restoration, replacements, or repairs"></textarea>
-        <label for="itemPhotos">Product Photos (5–10 images)</label>
-        <input id="itemPhotos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple>
-        <p class="muted">Choose at least 5 clear photos showing all sides and any damage. Maximum 10 photos, 10 MB each.</p>
-        <label for="itemVideo">Product Video (optional)</label>
-        <input id="itemVideo" type="file" accept="video/mp4,video/quicktime,video/webm">
-        <p class="muted">One optional video, maximum 50 MB.</p>
-        <p id="mediaMessage" class="muted" role="status" aria-live="polite">Media upload is being configured. You can select files, but submitting them is not yet available.</p>
         <button type="submit" id="listingSubmit" class="button">Submit for Review</button>
         <p class="muted" id="listingMessage" role="status" aria-live="polite"></p>
       </form>
