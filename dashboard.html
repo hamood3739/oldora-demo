@@ -164,6 +164,13 @@ visibility: hidden;
         </select>
         <label for="itemRepairsDetail">Repair details (if applicable)</label>
         <textarea id="itemRepairsDetail" rows="2" placeholder="Describe restoration, replacements, or repairs"></textarea>
+        <label for="itemPhotos">Product Photos (5–10 images)</label>
+        <input id="itemPhotos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple>
+        <p class="muted">Choose at least 5 clear photos showing all sides and any damage. Maximum 10 photos, 10 MB each.</p>
+        <label for="itemVideo">Product Video (optional)</label>
+        <input id="itemVideo" type="file" accept="video/mp4,video/quicktime,video/webm">
+        <p class="muted">One optional video, maximum 50 MB.</p>
+        <p id="mediaMessage" class="muted" role="status" aria-live="polite">Media upload is being configured. You can select files, but submitting them is not yet available.</p>
         <button type="submit" id="listingSubmit" class="button">Submit for Review</button>
         <p class="muted" id="listingMessage" role="status" aria-live="polite"></p>
       </form>
@@ -243,6 +250,24 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
   const details = document.getElementById('itemRepairsDetail').value.trim();
   if (disclosure === 'Restored or repaired' && !details) {
     message.textContent = 'Please describe all known repairs, replacements and restoration.';
+    return;
+  }
+  const photos = [...document.getElementById('itemPhotos').files];
+  const video = document.getElementById('itemVideo').files[0];
+  if (photos.length || video) {
+    if (photos.length < 5 || photos.length > 10) {
+      message.textContent = 'Please select 5 to 10 photos.';
+      return;
+    }
+    if (photos.some(file => file.size > 10 * 1024 * 1024)) {
+      message.textContent = 'Each photo must be 10 MB or smaller.';
+      return;
+    }
+    if (video && video.size > 50 * 1024 * 1024) {
+      message.textContent = 'Video must be 50 MB or smaller.';
+      return;
+    }
+    message.textContent = 'Media upload is not yet enabled. Your photos and video have not been saved. Please wait until secure storage is connected.';
     return;
   }
   button.disabled = true;
