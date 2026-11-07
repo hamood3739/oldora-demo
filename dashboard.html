@@ -108,10 +108,8 @@ visibility: hidden;
 
     <section class="card">
       <h3>My Listings</h3>
-      <p>
-        Your vintage listings will appear
-        here once connected to your account.
-      </p>
+      <p id="listingsStatus" class="muted" role="status">Loading your listings...</p>
+      <div id="myListings"></div>
       <p class="muted">
         Listings are reviewed before
         becoming publicly visible.
@@ -184,10 +182,9 @@ visibility: hidden;
 
     <section class="card">
       <h3>Account</h3>
-      <p>
-        Account management and secure
-        sign-out will be added next.
-      </p>
+      <p id="accountEmail" class="muted">Checking account...</p>
+      <button type="button" id="signOutButton" class="button">Sign Out</button>
+      <p id="signOutMessage" class="muted" role="status"></p>
     </section>
 
     <a href="index.html" class="button">
@@ -220,11 +217,57 @@ async function checkLogin() {
       return;
     }
 
+    document.getElementById('accountEmail').textContent = 'Signed in as: ' + (data.user.email || 'OLDORA seller');
     document.body.style.visibility = "visible";
+    await loadMyListings(data.user.id);
   } catch (error) {
     window.location.replace("auth.html");
   }
 }
+
+async function loadMyListings(userId) {
+  const status = document.getElementById('listingsStatus');
+  const container = document.getElementById('myListings');
+  status.textContent = 'Loading your listings...';
+  container.replaceChildren();
+  const { data, error } = await supabaseClient.from('products')
+    .select('id,title,price,status,created_at')
+    .eq('seller_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) {
+    status.textContent = 'Unable to load listings: ' + error.message;
+    return;
+  }
+  if (!data || data.length === 0) {
+    status.textContent = 'You have no listings yet. Add your first vintage item below.';
+    return;
+  }
+  status.textContent = 'Your listings (' + data.length + ')';
+  data.forEach(item => {
+    const entry = document.createElement('div');
+    entry.style.cssText = 'border-top:1px solid #59492f;padding:14px 0';
+    const title = document.createElement('strong');
+    title.textContent = item.title || 'Untitled item';
+    const detail = document.createElement('p');
+    detail.className = 'muted';
+    detail.textContent = 'SAR ' + Number(item.price || 0).toFixed(2) + ' · ' + (item.status || 'pending');
+    entry.append(title, detail);
+    container.appendChild(entry);
+  });
+}
+
+document.getElementById('signOutButton').addEventListener('click', async () => {
+  const button = document.getElementById('signOutButton');
+  const message = document.getElementById('signOutMessage');
+  button.disabled = true;
+  const { error } = await supabaseClient.auth.signOut();
+  if (error) {
+    message.textContent = 'Sign out failed: ' + error.message;
+    button.disabled = false;
+  } else {
+    window.location.replace('auth.html');
+  }
+});
 
 checkLogin();
 
@@ -317,6 +360,7 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
     if (error) throw error;
     message.textContent = 'Item submitted. It will remain pending until reviewed and age verified.';
     event.target.reset();
+    await loadMyListings(user.id);
   } catch (error) {
     message.textContent = 'Unable to submit: ' + (error.message || 'Please try again.');
   } finally {
