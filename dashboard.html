@@ -121,7 +121,7 @@ visibility: hidden;
       <p>List an authentic vintage item at least 20 years old. All listings are reviewed before publication.</p>
       <form id="listingForm">
         <label for="itemPhotos">Product Photos (5–10 images)</label>
-        <input id="itemPhotos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple>
+        <input id="itemPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
         <p class="muted">Choose at least 5 clear photos showing all sides and any damage. Maximum 10 photos, 10 MB each.</p>
         <label for="mainPhoto">Main Photo (cover image)</label>
         <select id="mainPhoto" disabled required>
@@ -130,8 +130,8 @@ visibility: hidden;
         <p class="muted">The first photo is selected automatically. You can change it before submitting.</p>
         <label for="itemVideo">Product Video (optional)</label>
         <input id="itemVideo" type="file" accept="video/mp4,video/quicktime,video/webm">
-        <p class="muted">One optional video, maximum 50 MB.</p>
-        <p id="mediaMessage" class="muted" role="status" aria-live="polite">Media upload is being configured. You can select files, but submitting them is not yet available.</p>
+        <p class="muted">Video upload is coming later; please submit photos only for now.</p>
+        <p id="mediaMessage" class="muted" role="status" aria-live="polite">Photos are stored privately until review. Video uploads are not enabled yet.</p>
 
         <label for="itemTitle">Item title</label>
         <input id="itemTitle" maxlength="120" required>
@@ -320,20 +320,21 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
   }
   const photos = [...document.getElementById('itemPhotos').files];
   const video = document.getElementById('itemVideo').files[0];
-  if (photos.length || video) {
-    if (photos.length < 5 || photos.length > 10) {
-      message.textContent = 'Please select 5 to 10 photos.';
-      return;
-    }
-    if (photos.some(file => file.size > 10 * 1024 * 1024)) {
-      message.textContent = 'Each photo must be 10 MB or smaller.';
-      return;
-    }
-    if (video && video.size > 50 * 1024 * 1024) {
-      message.textContent = 'Video must be 50 MB or smaller.';
-      return;
-    }
-    message.textContent = 'Media upload is not yet enabled. Your photos and video have not been saved. Please wait until secure storage is connected.';
+  if (photos.length < 5 || photos.length > 10) {
+    message.textContent = 'Please select 5 to 10 photos.';
+    return;
+  }
+  const accepted = ['image/jpeg', 'image/png', 'image/webp'];
+  if (photos.some(file => !accepted.includes(file.type))) {
+    message.textContent = 'Please use JPG, PNG or WebP photos. Convert iPhone HEIC photos to JPEG before uploading.';
+    return;
+  }
+  if (photos.some(file => file.size > 10 * 1024 * 1024)) {
+    message.textContent = 'Each photo must be 10 MB or smaller.';
+    return;
+  }
+  if (video) {
+    message.textContent = 'Video uploads are not enabled yet. Please remove the video and submit photos only.';
     return;
   }
   button.disabled = true;
@@ -341,8 +342,31 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
   try {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) throw new Error('Please log in again.');
+    const listingId = crypto.randomUUID();
+    const uploadedPaths = [];
+    const selectedCover = Number(mainPhotoSelect.value);
+    if (!Number.isInteger(selectedCover) || selectedCover < 0 || selectedCover >= photos.length) {
+      throw new Error('Choose a main photo.');
+    }
+    try {
+      for (let i = 0; i < photos.length; i++) {
+        message.textContent = 'Uploading photo ' + (i + 1) + ' of ' + photos.length + '...';
+        const extension = photos[i].type === 'image/png' ? 'png' : photos[i].type === 'image/webp' ? 'webp' : 'jpg';
+        const photoPath = user.id + '/' + listingId + '/' + String(i + 1).padStart(2, '0') + '.' + extension;
+        const { error: uploadError } = await supabaseClient.storage.from('product-media')
+          .upload(photoPath, photos[i], { contentType: photos[i].type, upsert: false });
+        if (uploadError) throw uploadError;
+        uploadedPaths.push(photoPath);
+      }
+    } catch (uploadError) {
+      await Promise.allSettled(uploadedPaths.map(path =>
+        supabaseClient.storage.from('product-media').remove([path])));
+      throw uploadError;
+    }
     const record = {
+      id: listingId,
       seller_id: user.id,
+      image_path: uploadedPaths[selectedCover],
       title: document.getElementById('itemTitle').value.trim(),
       description: document.getElementById('itemDescription').value.trim(),
       price: Number(document.getElementById('itemPrice').value),
@@ -356,10 +380,17 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
       status: 'pending',
       age_verified: false
     };
+    message.textContent = 'Saving your listing...';
     const { error } = await supabaseClient.from('products').insert(record);
-    if (error) throw error;
+    if (error) {
+      await Promise.allSettled(uploadedPaths.map(path =>
+        supabaseClient.storage.from('product-media').remove([path])));
+      throw error;
+    }
     message.textContent = 'Item submitted. It will remain pending until reviewed and age verified.';
     event.target.reset();
+    mainPhotoSelect.replaceChildren(new Option('Choose photos first', ''));
+    mainPhotoSelect.disabled = true;
     await loadMyListings(user.id);
   } catch (error) {
     message.textContent = 'Unable to submit: ' + (error.message || 'Please try again.');
