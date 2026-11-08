@@ -366,6 +366,7 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
     const record = {
       seller_id: user.id,
       image_path: uploadedPaths[selectedCover],
+      image_urls: uploadedPaths,
       title: document.getElementById('itemTitle').value.trim(),
       description: document.getElementById('itemDescription').value.trim(),
       price: Number(document.getElementById('itemPrice').value),
