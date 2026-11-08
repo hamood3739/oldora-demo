@@ -364,7 +364,6 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
       throw uploadError;
     }
     const record = {
-      id: listingId,
       seller_id: user.id,
       image_path: uploadedPaths[selectedCover],
       title: document.getElementById('itemTitle').value.trim(),
