@@ -84,6 +84,7 @@ visibility: hidden;
     }
 
     .muted { color: #b9ad98; }
+    [hidden] { display: none !important; }
 
     footer {
       padding: 25px;
@@ -114,6 +115,25 @@ visibility: hidden;
         Listings are reviewed before
         becoming publicly visible.
       </p>
+    </section>
+
+    <section class="card" id="editListingCard" hidden>
+      <h3>Edit Pending Listing</h3>
+      <p class="muted">Update your listing before review. Choose a different cover from its uploaded photos.</p>
+      <form id="editListingForm">
+        <input type="hidden" id="editListingId">
+        <label for="editTitle">Item title</label>
+        <input id="editTitle" maxlength="120" required>
+        <label for="editDescription">Description</label>
+        <textarea id="editDescription" rows="4" required></textarea>
+        <label for="editPrice">Price (SAR)</label>
+        <input id="editPrice" type="number" min="1" step="0.01" required>
+        <label for="editCover">Main photo</label>
+        <select id="editCover"></select>
+        <button class="button" id="saveEdit" type="submit">Save Changes</button>
+        <button class="button" id="cancelEdit" type="button">Cancel</button>
+        <p class="muted" id="editMessage" role="status" aria-live="polite"></p>
+      </form>
     </section>
 
     <section class="card">
@@ -231,7 +251,7 @@ async function loadMyListings(userId) {
   status.textContent = 'Loading your listings...';
   container.replaceChildren();
   const { data, error } = await supabaseClient.from('products')
-    .select('id,title,price,status,created_at,image_path')
+    .select('id,title,price,status,created_at,image_path,image_urls,description')
     .eq('seller_id', userId)
     .order('created_at', { ascending: false });
   if (error) {
@@ -252,6 +272,14 @@ async function loadMyListings(userId) {
     detail.className = 'muted';
     detail.textContent = 'SAR ' + Number(item.price || 0).toFixed(2) + ' · ' + (item.status || 'pending');
     entry.append(title, detail);
+    if (item.status === 'pending') {
+      const editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.className = 'button';
+      editButton.textContent = 'Edit Pending Listing';
+      editButton.addEventListener('click', () => openListingEditor(item));
+      entry.appendChild(editButton);
+    }
     container.appendChild(entry);
     if (item.image_path && typeof item.image_path === 'string') {
       // The pending-media bucket is private. Use a short-lived URL only for the signed-in seller.
@@ -269,6 +297,67 @@ async function loadMyListings(userId) {
     }
   });
 }
+
+function openListingEditor(item) {
+  const editor = document.getElementById('editListingCard');
+  editor.hidden = false;
+  document.getElementById('editTitle').value = item.title || '';
+  document.getElementById('editDescription').value = item.description || '';
+  document.getElementById('editPrice').value = item.price || '';
+  document.getElementById('editListingId').value = item.id;
+  document.getElementById('editMessage').textContent = '';
+  const covers = document.getElementById('editCover');
+  covers.replaceChildren();
+  const paths = Array.isArray(item.image_urls) ? item.image_urls.filter(p => typeof p === 'string') : [];
+  if (item.image_path && !paths.includes(item.image_path)) paths.unshift(item.image_path);
+  if (paths.length) {
+    paths.forEach((p, i) => covers.add(new Option('Photo ' + (i + 1), p)));
+    covers.value = item.image_path || paths[0];
+    covers.disabled = false;
+  } else {
+    covers.add(new Option('No photos on this listing', ''));
+    covers.disabled = true;
+  }
+  editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+document.getElementById('cancelEdit').addEventListener('click', () => {
+  document.getElementById('editListingCard').hidden = true;
+});
+document.getElementById('editListingForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const button = document.getElementById('saveEdit');
+  const message = document.getElementById('editMessage');
+  const title = document.getElementById('editTitle').value.trim();
+  const description = document.getElementById('editDescription').value.trim();
+  const price = Number(document.getElementById('editPrice').value);
+  if (!title || !description || !Number.isFinite(price) || price <= 0) {
+    message.textContent = 'Please enter a title, description and valid price.';
+    return;
+  }
+  button.disabled = true;
+  message.textContent = 'Saving changes...';
+  try {
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) throw new Error('Please sign in again.');
+    const changes = { title, description, price };
+    const cover = document.getElementById('editCover');
+    if (!cover.disabled && cover.value) changes.image_path = cover.value;
+    const { data, error } = await supabaseClient.from('products')
+      .update(changes)
+      .eq('id', document.getElementById('editListingId').value)
+      .eq('seller_id', user.id)
+      .eq('status', 'pending')
+      .select('id');
+    if (error) throw error;
+    if (!data?.length) throw new Error('Listing could not be updated. It may no longer be pending.');
+    message.textContent = 'Changes saved. The listing is still pending review.';
+    await loadMyListings(user.id);
+  } catch (error) {
+    message.textContent = 'Unable to save: ' + (error.message || 'Please try again.');
+  } finally {
+    button.disabled = false;
+  }
+});
 
 document.getElementById('signOutButton').addEventListener('click', async () => {
   const button = document.getElementById('signOutButton');
