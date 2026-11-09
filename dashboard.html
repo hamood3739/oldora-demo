@@ -231,7 +231,7 @@ async function loadMyListings(userId) {
   status.textContent = 'Loading your listings...';
   container.replaceChildren();
   const { data, error } = await supabaseClient.from('products')
-    .select('id,title,price,status,created_at')
+    .select('id,title,price,status,created_at,image_path')
     .eq('seller_id', userId)
     .order('created_at', { ascending: false });
   if (error) {
@@ -253,6 +253,20 @@ async function loadMyListings(userId) {
     detail.textContent = 'SAR ' + Number(item.price || 0).toFixed(2) + ' · ' + (item.status || 'pending');
     entry.append(title, detail);
     container.appendChild(entry);
+    if (item.image_path && typeof item.image_path === 'string') {
+      // The pending-media bucket is private. Use a short-lived URL only for the signed-in seller.
+      supabaseClient.storage.from('product-media').createSignedUrl(item.image_path, 120)
+        .then(({ data: photoData, error: photoError }) => {
+          if (photoError || !photoData?.signedUrl) return;
+          const photo = document.createElement('img');
+          photo.src = photoData.signedUrl;
+          photo.alt = 'Main photo for ' + (item.title || 'vintage item');
+          photo.loading = 'lazy';
+          photo.style.cssText = 'display:block;width:100%;max-width:220px;max-height:220px;object-fit:contain;border:1px solid #59492f;border-radius:8px;margin:10px 0';
+          entry.insertBefore(photo, detail);
+        })
+        .catch(() => {});
+    }
   });
 }
 
