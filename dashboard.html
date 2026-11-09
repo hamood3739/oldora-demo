@@ -142,7 +142,7 @@ visibility: hidden;
 
     <section class="card">
       <h3>Add a Vintage Item</h3>
-      <p>List an authentic vintage item at least 20 years old. All listings are reviewed before publication.</p>
+      <p>Classic and vintage categories require 20+ years. Modern Collectibles accepts items aged 15–19 years. Listings remain pending until verification is enabled.</p>
       <form id="listingForm">
         <h4 style="color:var(--gold)">Listing Readiness Check</h4>
         <p class="muted">Checks your form before submission. This is not proof of authenticity or age verification.</p>
@@ -168,7 +168,7 @@ visibility: hidden;
         <label for="itemPrice">Price (SAR)</label>
         <input id="itemPrice" type="number" min="1" step="0.01" inputmode="decimal" required>
         <label for="itemAge">Item age (years)</label>
-        <input id="itemAge" type="number" min="20" max="1000" required>
+        <input id="itemAge" type="number" min="15" max="1000" required>
         <label for="itemYear">Manufacture year (estimated)</label>
         <input id="itemYear" type="number" min="1000" max="2006" inputmode="numeric" required>
         <label for="itemOrigin">Country of origin</label>
@@ -197,6 +197,7 @@ visibility: hidden;
           <option value="Historical Memorabilia">Historical Memorabilia</option>
           <option value="Traditional &amp; Heritage Items">Traditional &amp; Heritage Items</option>
           <option value="Other Vintage Items">Other Vintage Items</option>
+          <option value="Modern Collectibles">Modern Collectibles (15–19 years)</option>
         </select>
         <label for="itemCondition">Condition</label>
         <select id="itemCondition" required>
@@ -485,12 +486,14 @@ document.getElementById('checkListing').addEventListener('click', () => {
   const age = Number(get('itemAge'));
   const year = Number(get('itemYear'));
   const photos = Array.from(document.getElementById('itemPhotos').files);
-  const maxYear = new Date().getFullYear() - 20;
+  const modern = get('itemCategory') === 'Modern Collectibles';
+  const minAge = modern ? 15 : 20;
+  const maxYear = new Date().getFullYear() - minAge;
   if (!get('itemTitle')) issues.push('Add an item title.');
   if (!get('itemDescription')) issues.push('Add a description.');
   if (!(Number(get('itemPrice')) > 0)) issues.push('Enter a valid price.');
-  if (!Number.isInteger(age) || age < 20) issues.push('Item age must be at least 20 years.');
-  if (!Number.isInteger(year) || year > maxYear || year < 1) issues.push('Check the manufacture year (20+ years old).');
+  if (!Number.isInteger(age) || age < minAge || (modern && age > 19)) issues.push(modern ? 'Modern Collectibles must be 15–19 years old.' : 'This category requires at least 20 years.');
+  if (!Number.isInteger(year) || year > maxYear || year < 1) issues.push('Check the manufacture year for the selected category.');
   if (Number.isInteger(age) && Number.isInteger(year) && Math.abs((new Date().getFullYear() - year) - age) > 1) issues.push('Item age and manufacture year do not agree.');
   if (!get('itemOrigin')) issues.push('Enter country of origin.');
   if (!get('itemMaterials')) issues.push('Enter materials.');
@@ -509,8 +512,10 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
   const button = document.getElementById('listingSubmit');
   const message = document.getElementById('listingMessage');
   const age = Number(document.getElementById('itemAge').value);
-  if (!Number.isInteger(age) || age < 20) {
-    message.textContent = 'Only items at least 20 years old are eligible.';
+  const modern = document.getElementById('itemCategory').value === 'Modern Collectibles';
+  const minAge = modern ? 15 : 20;
+  if (!Number.isInteger(age) || age < minAge || (modern && age > 19)) {
+    message.textContent = modern ? 'Modern Collectibles must be 15–19 years old.' : 'This category requires items at least 20 years old.';
     return;
   }
   const price = Number(document.getElementById('itemPrice').value);
@@ -519,9 +524,13 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
     return;
   }
   const year = Number(document.getElementById('itemYear').value);
-  const oldestAllowedYear = new Date().getFullYear() - 20;
+  const oldestAllowedYear = new Date().getFullYear() - minAge;
   if (!Number.isInteger(year) || year < 1000 || year > oldestAllowedYear) {
-    message.textContent = 'Manufacture year must be at least 20 years ago.';
+    message.textContent = 'Manufacture year does not meet the selected category requirement.';
+    return;
+  }
+  if (modern && new Date().getFullYear() - year > 20) {
+    message.textContent = 'Modern Collectibles is reserved for items aged 15–19 years.';
     return;
   }
   if (age < new Date().getFullYear() - year - 1 || age > new Date().getFullYear() - year + 1) {
