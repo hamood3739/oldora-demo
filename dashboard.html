@@ -119,7 +119,7 @@ visibility: hidden;
 
     <section class="card" id="editListingCard" hidden>
       <h3>Edit Pending Listing</h3>
-      <p class="muted">Update your listing before review. Choose a different cover from its uploaded photos.</p>
+      <p class="muted">Manage 5–10 photos while your listing is pending review. Changes are saved only when you press Save Changes.</p>
       <form id="editListingForm">
         <input type="hidden" id="editListingId">
         <label for="editTitle">Item title</label>
@@ -130,6 +130,10 @@ visibility: hidden;
         <input id="editPrice" type="number" min="1" step="0.01" required>
         <label for="editCover">Main photo</label>
         <select id="editCover"></select>
+        <div id="editPhotoList"></div>
+        <label for="editAddPhotos">Add photos (JPG, PNG or WebP; 10 MB each)</label>
+        <input id="editAddPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+        <p class="muted" id="editPhotoCount"></p>
         <button class="button" id="saveEdit" type="submit">Save Changes</button>
         <button class="button" id="cancelEdit" type="button">Cancel</button>
         <p class="muted" id="editMessage" role="status" aria-live="polite"></p>
@@ -310,6 +314,37 @@ async function loadMyListings(userId) {
   });
 }
 
+let editingPhotoPaths = [];
+let editingOriginalPaths = [];
+let editingOriginalCover = '';
+function refreshEditPhotos() {
+  const list = document.getElementById('editPhotoList');
+  const covers = document.getElementById('editCover');
+  const previousCover = covers.value || editingOriginalCover;
+  list.replaceChildren();
+  covers.replaceChildren();
+  editingPhotoPaths.forEach((path, index) => {
+    covers.add(new Option('Photo ' + (index + 1), path));
+    const line = document.createElement('div');
+    line.style.cssText = 'display:flex;gap:12px;align-items:center;margin:10px 0;flex-wrap:wrap';
+    const name = document.createElement('span');
+    name.textContent = 'Photo ' + (index + 1);
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'button';
+    remove.textContent = 'Remove';
+    remove.disabled = editingPhotoPaths.length <= 5;
+    remove.addEventListener('click', () => {
+      editingPhotoPaths.splice(index, 1);
+      refreshEditPhotos();
+    });
+    line.append(name, remove);
+    list.append(line);
+  });
+  covers.disabled = !editingPhotoPaths.length;
+  if (editingPhotoPaths.length) covers.value = editingPhotoPaths.includes(previousCover) ? previousCover : editingPhotoPaths[0];
+  document.getElementById('editPhotoCount').textContent = editingPhotoPaths.length + ' existing photos selected (5–10 required). Newly selected photos will be added on Save.';
+}
 function openListingEditor(item) {
   const editor = document.getElementById('editListingCard');
   editor.hidden = false;
@@ -318,20 +353,18 @@ function openListingEditor(item) {
   document.getElementById('editPrice').value = item.price || '';
   document.getElementById('editListingId').value = item.id;
   document.getElementById('editMessage').textContent = '';
-  const covers = document.getElementById('editCover');
-  covers.replaceChildren();
-  const paths = Array.isArray(item.image_urls) ? item.image_urls.filter(p => typeof p === 'string') : [];
-  if (item.image_path && !paths.includes(item.image_path)) paths.unshift(item.image_path);
-  if (paths.length) {
-    paths.forEach((p, i) => covers.add(new Option('Photo ' + (i + 1), p)));
-    covers.value = item.image_path || paths[0];
-    covers.disabled = false;
-  } else {
-    covers.add(new Option('No photos on this listing', ''));
-    covers.disabled = true;
-  }
+  document.getElementById('editAddPhotos').value = '';
+  editingOriginalPaths = Array.isArray(item.image_urls) ? item.image_urls.filter(p => typeof p === 'string') : [];
+  if (item.image_path && !editingOriginalPaths.includes(item.image_path)) editingOriginalPaths.unshift(item.image_path);
+  editingPhotoPaths = [...new Set(editingOriginalPaths)];
+  editingOriginalCover = item.image_path || editingPhotoPaths[0] || '';
+  refreshEditPhotos();
   editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+document.getElementById('editAddPhotos').addEventListener('change', () => {
+  const files = Array.from(document.getElementById('editAddPhotos').files);
+  document.getElementById('editPhotoCount').textContent = editingPhotoPaths.length + ' existing + ' + files.length + ' new photos (5–10 total required).';
+});
 document.getElementById('cancelEdit').addEventListener('click', () => {
   document.getElementById('editListingCard').hidden = true;
 });
@@ -342,31 +375,69 @@ document.getElementById('editListingForm').addEventListener('submit', async (eve
   const title = document.getElementById('editTitle').value.trim();
   const description = document.getElementById('editDescription').value.trim();
   const price = Number(document.getElementById('editPrice').value);
+  const files = Array.from(document.getElementById('editAddPhotos').files);
+  const count = editingPhotoPaths.length + files.length;
   if (!title || !description || !Number.isFinite(price) || price <= 0) {
     message.textContent = 'Please enter a title, description and valid price.';
     return;
   }
+  if (count < 5 || count > 10) {
+    message.textContent = 'A listing must have between 5 and 10 photos.';
+    return;
+  }
+  if (files.some(f => !['image/jpeg','image/png','image/webp'].includes(f.type) || f.size > 10 * 1024 * 1024 || !f.size)) {
+    message.textContent = 'New photos must be JPG, PNG or WebP, up to 10 MB each.';
+    return;
+  }
   button.disabled = true;
   message.textContent = 'Saving changes...';
+  const uploaded = [];
+  let committed = false;
   try {
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) throw new Error('Please sign in again.');
-    const changes = { title, description, price };
-    const cover = document.getElementById('editCover');
-    if (!cover.disabled && cover.value) changes.image_path = cover.value;
+    const listingId = document.getElementById('editListingId').value;
+    // Confirm ownership and pending status before uploading any files.
+    const { data: row, error: rowError } = await supabaseClient.from('products')
+      .select('id,image_urls,image_path,status').eq('id', listingId).eq('seller_id', user.id).eq('status', 'pending').single();
+    if (rowError || !row) throw new Error('Listing is no longer editable.');
+    const livePaths = Array.isArray(row.image_urls) ? row.image_urls : [];
+    if (row.image_path && !livePaths.includes(row.image_path)) livePaths.unshift(row.image_path);
+    if (editingOriginalPaths.length !== livePaths.length || editingOriginalPaths.some(p => !livePaths.includes(p))) {
+      throw new Error('Photos changed in another session. Reopen the listing and try again.');
+    }
+    for (const file of files) {
+      const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+      const unique = crypto.randomUUID();
+      const storagePath = user.id + '/' + crypto.randomUUID() + '/' + unique + '.' + ext;
+      const { error: uploadError } = await supabaseClient.storage.from('product-media')
+        .upload(storagePath, file, { contentType: file.type, upsert: false });
+      if (uploadError) throw uploadError;
+      uploaded.push(storagePath);
+    }
+    const paths = [...editingPhotoPaths, ...uploaded];
+    const selectedCover = document.getElementById('editCover').value;
+    const cover = paths.includes(selectedCover) ? selectedCover : paths[0];
     const { data, error } = await supabaseClient.from('products')
-      .update(changes)
-      .eq('id', document.getElementById('editListingId').value)
-      .eq('seller_id', user.id)
-      .eq('status', 'pending')
-      .select('id');
+      .update({ title, description, price, image_urls: paths, image_path: cover })
+      .eq('id', listingId).eq('seller_id', user.id).eq('status', 'pending').select('id');
     if (error) throw error;
     if (!data?.length) throw new Error('Listing could not be updated. It may no longer be pending.');
-    message.textContent = 'Changes saved. The listing is still pending review.';
+    committed = true;
+    message.textContent = 'Listing and photos saved. Still pending review.';
+    document.getElementById('editAddPhotos').value = '';
+    editingPhotoPaths = paths;
+    editingOriginalPaths = [...paths];
+    editingOriginalCover = cover;
+    refreshEditPhotos();
     await loadMyListings(user.id);
+    // Removed photos are detached from the listing, but not deleted from private storage.
   } catch (error) {
     message.textContent = 'Unable to save: ' + (error.message || 'Please try again.');
   } finally {
+    if (!committed && uploaded.length) {
+      await supabaseClient.storage.from('product-media').remove(uploaded).catch(() => {});
+    }
     button.disabled = false;
   }
 });
