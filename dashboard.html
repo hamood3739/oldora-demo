@@ -497,7 +497,7 @@ document.getElementById('checkListing').addEventListener('click', () => {
   if (!get('itemCategory')) issues.push('Select a category.');
   if (!get('itemCondition')) issues.push('Select condition.');
   if (!get('itemRepairs')) issues.push('Disclose restoration and repairs.');
-  if (get('itemRepairs') === 'Restored or repaired' && !get('itemRepairDetails')) issues.push('Describe the restoration or repairs.');
+  if (get('itemRepairs') === 'Restored or repaired' && !get('itemRepairsDetail')) issues.push('Describe the restoration or repairs.');
   if (photos.length < 5 || photos.length > 10) issues.push('Select 5–10 photos.');
   if (photos.some(f => !['image/jpeg','image/png','image/webp'].includes(f.type) || f.size > 10 * 1024 * 1024 || !f.size)) issues.push('Photos must be JPG, PNG or WebP, up to 10 MB each.');
   document.getElementById('readinessResult').textContent = issues.length
