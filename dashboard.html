@@ -144,6 +144,10 @@ visibility: hidden;
       <h3>Add a Vintage Item</h3>
       <p>List an authentic vintage item at least 20 years old. All listings are reviewed before publication.</p>
       <form id="listingForm">
+        <h4 style="color:var(--gold)">Listing Readiness Check</h4>
+        <p class="muted">Checks your form before submission. This is not proof of authenticity or age verification.</p>
+        <button class="button" id="checkListing" type="button">Check Listing</button>
+        <p class="muted" id="readinessResult" role="status" aria-live="polite"></p>
         <label for="itemPhotos">Product Photos (5–10 images)</label>
         <input id="itemPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
         <p class="muted">Choose at least 5 clear photos showing all sides and any damage. Maximum 10 photos, 10 MB each.</p>
@@ -474,6 +478,32 @@ photosInput.addEventListener('change', () => {
   mainPhotoSelect.value = '0';
 });
 
+
+document.getElementById('checkListing').addEventListener('click', () => {
+  const get = id => document.getElementById(id).value.trim();
+  const issues = [];
+  const age = Number(get('itemAge'));
+  const year = Number(get('itemYear'));
+  const photos = Array.from(document.getElementById('itemPhotos').files);
+  const maxYear = new Date().getFullYear() - 20;
+  if (!get('itemTitle')) issues.push('Add an item title.');
+  if (!get('itemDescription')) issues.push('Add a description.');
+  if (!(Number(get('itemPrice')) > 0)) issues.push('Enter a valid price.');
+  if (!Number.isInteger(age) || age < 20) issues.push('Item age must be at least 20 years.');
+  if (!Number.isInteger(year) || year > maxYear || year < 1) issues.push('Check the manufacture year (20+ years old).');
+  if (Number.isInteger(age) && Number.isInteger(year) && Math.abs((new Date().getFullYear() - year) - age) > 1) issues.push('Item age and manufacture year do not agree.');
+  if (!get('itemOrigin')) issues.push('Enter country of origin.');
+  if (!get('itemMaterials')) issues.push('Enter materials.');
+  if (!get('itemCategory')) issues.push('Select a category.');
+  if (!get('itemCondition')) issues.push('Select condition.');
+  if (!get('itemRepairs')) issues.push('Disclose restoration and repairs.');
+  if (get('itemRepairs') === 'Restored or repaired' && !get('itemRepairDetails')) issues.push('Describe the restoration or repairs.');
+  if (photos.length < 5 || photos.length > 10) issues.push('Select 5–10 photos.');
+  if (photos.some(f => !['image/jpeg','image/png','image/webp'].includes(f.type) || f.size > 10 * 1024 * 1024 || !f.size)) issues.push('Photos must be JPG, PNG or WebP, up to 10 MB each.');
+  document.getElementById('readinessResult').textContent = issues.length
+    ? 'Please check: ' + issues.join(' ')
+    : 'Form checks passed. You can submit for verification. This does not confirm age, ownership or authenticity.';
+});
 document.getElementById('listingForm').addEventListener('submit', async (event) => {
   event.preventDefault();
   const button = document.getElementById('listingSubmit');
