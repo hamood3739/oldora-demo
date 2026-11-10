@@ -82,7 +82,7 @@ if(item.image_path&&typeof item.image_path==='string'&&!item.image_path.includes
 const h=document.createElement('h3');h.textContent=item.title||'Vintage item';
 const p=document.createElement('p');p.className='price';p.textContent='SAR '+Number(item.price||0).toFixed(2);
 const meta=document.createElement('p');meta.className='meta';meta.textContent=item.category||'Vintage collectible';
-card.append(h,p,meta);grid.append(card)
+card.append(h,p,meta);const link=document.createElement('a');link.className='btn';link.href='product.html?id='+encodeURIComponent(String(item.id));link.textContent='View Details';link.setAttribute('aria-label','View details for '+(item.title||'vintage item'));card.append(link);grid.append(card)
 });
 }
 search.addEventListener('input',render);select.addEventListener('change',render);
