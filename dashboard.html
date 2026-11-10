@@ -109,6 +109,16 @@ visibility: hidden;
 
     <section class="card">
       <h3>My Listings</h3>
+      <label for="listingSearch">Search my listings</label>
+      <input id="listingSearch" type="search" placeholder="Search by item name" autocomplete="off">
+      <label for="listingFilter">Filter by status</label>
+      <select id="listingFilter">
+        <option value="all">All listings</option>
+        <option value="pending">Pending review</option>
+        <option value="approved">Approved</option>
+        <option value="published">Published</option>
+        <option value="rejected">Rejected</option>
+      </select>
       <p id="listingsStatus" class="muted" role="status">Loading your listings...</p>
       <div id="myListings"></div>
       <p class="muted">
@@ -266,6 +276,24 @@ async function checkLogin() {
   }
 }
 
+function filterMyListings() {
+  const query = document.getElementById('listingSearch').value.trim().toLocaleLowerCase();
+  const selected = document.getElementById('listingFilter').value;
+  const entries = [...document.querySelectorAll('#myListings [data-listing-status]')];
+  let shown = 0;
+  entries.forEach(entry => {
+    const matchesName = (entry.dataset.listingTitle || '').toLocaleLowerCase().includes(query);
+    const matchesStatus = selected === 'all' || entry.dataset.listingStatus === selected;
+    entry.hidden = !(matchesName && matchesStatus);
+    if (!entry.hidden) shown++;
+  });
+  if (entries.length) document.getElementById('listingsStatus').textContent =
+    'Showing ' + shown + ' of ' + entries.length + ' listings' +
+    (shown === 0 ? ' — try another search or status.' : '');
+}
+document.getElementById('listingSearch').addEventListener('input', filterMyListings);
+document.getElementById('listingFilter').addEventListener('change', filterMyListings);
+
 async function loadMyListings(userId) {
   const status = document.getElementById('listingsStatus');
   const container = document.getElementById('myListings');
@@ -287,6 +315,8 @@ async function loadMyListings(userId) {
   data.forEach(item => {
     const entry = document.createElement('div');
     entry.style.cssText = 'border-top:1px solid #59492f;padding:14px 0';
+    entry.dataset.listingStatus = String(item.status || 'pending').toLowerCase();
+    entry.dataset.listingTitle = item.title || '';
     const title = document.createElement('strong');
     title.textContent = item.title || 'Untitled item';
     const detail = document.createElement('p');
@@ -317,6 +347,7 @@ async function loadMyListings(userId) {
         .catch(() => {});
     }
   });
+  filterMyListings();
 }
 
 let editingPhotoPaths = [];
