@@ -349,6 +349,42 @@ async function loadMyListings(userId) {
       editButton.addEventListener('click', () => openListingEditor(item));
       entry.appendChild(editButton);
     }
+    if (item.status === 'pending') {
+      const check = document.createElement('button');
+      check.type = 'button';
+      check.className = 'button';
+      check.textContent = 'Check Saved Listing';
+      const result = document.createElement('div');
+      result.className = 'muted';
+      result.setAttribute('role', 'status');
+      check.addEventListener('click', async () => {
+        check.disabled = true;
+        result.textContent = 'Checking saved listing...';
+        try {
+          const { data, error } = await supabaseClient.rpc('oldora_listing_readiness', { p_product_id: item.id });
+          if (error) throw error;
+          result.replaceChildren();
+          const rows = Array.isArray(data) ? data : [];
+          for (const row of rows) {
+            const line = document.createElement('p');
+            line.style.margin = '7px 0';
+            line.textContent = (row.passed ? '✓ ' : '• ') + row.check_name + ': ' + (row.passed ? 'Passed' : 'Needs attention');
+            line.title = row.detail || '';
+            result.appendChild(line);
+          }
+          const summary = document.createElement('p');
+          summary.textContent = rows.length && rows.every(x => x.passed)
+            ? 'Basic data checks passed. This does not verify authenticity or publish the listing.'
+            : 'Some checks need attention. Your listing remains pending.';
+          result.appendChild(summary);
+        } catch (e) {
+          result.textContent = 'Unable to check listing: ' + (e.message || 'Please try later.');
+        } finally {
+          check.disabled = false;
+        }
+      });
+      entry.append(check, result);
+    }
     container.appendChild(entry);
     if (item.image_path && typeof item.image_path === 'string') {
       // Keep private pending photos accessible only through short-lived seller signed URLs.
