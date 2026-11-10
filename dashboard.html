@@ -83,6 +83,16 @@ visibility: hidden;
       font: 16px Arial, sans-serif;
     }
 
+
+    /* Seller listing cards: compact, responsive, black and antique gold. */
+    #myListings { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr)); gap:16px; }
+    .seller-listing { min-width:0; overflow:hidden; border:1px solid #59492f; border-radius:12px; background:#181715; padding:14px; display:flex; flex-direction:column; gap:10px; }
+    .seller-listing__photo { width:100%; aspect-ratio:4/3; object-fit:contain; background:#22201c; border:1px solid #493c2b; border-radius:9px; }
+    .seller-listing__placeholder { display:grid; place-items:center; color:#b9ad98; font:14px Arial,sans-serif; }
+    .seller-listing__title { display:block; color:#f5f0e6; font-size:19px; line-height:1.35; overflow-wrap:anywhere; }
+    .seller-listing__price { margin:0; color:var(--gold); font:bold 18px Arial,sans-serif; }
+    .seller-listing__status { align-self:flex-start; border:1px solid #766448; border-radius:99px; padding:5px 10px; color:#d6c5a6; font:12px Arial,sans-serif; text-transform:capitalize; }
+    .seller-listing .button { margin-top:auto; text-align:center; font-size:14px; padding:12px; }
     .muted { color: #b9ad98; }
     [hidden] { display: none !important; }
 
@@ -313,16 +323,24 @@ async function loadMyListings(userId) {
   }
   status.textContent = 'Your listings (' + data.length + ')';
   data.forEach(item => {
-    const entry = document.createElement('div');
-    entry.style.cssText = 'border-top:1px solid #59492f;padding:14px 0';
+    const entry = document.createElement('article');
+    entry.className = 'seller-listing';
     entry.dataset.listingStatus = String(item.status || 'pending').toLowerCase();
     entry.dataset.listingTitle = item.title || '';
+
+    const photo = document.createElement('div');
+    photo.className = 'seller-listing__photo seller-listing__placeholder';
+    photo.textContent = 'No photo available';
     const title = document.createElement('strong');
+    title.className = 'seller-listing__title';
     title.textContent = item.title || 'Untitled item';
-    const detail = document.createElement('p');
-    detail.className = 'muted';
-    detail.textContent = 'SAR ' + Number(item.price || 0).toFixed(2) + ' · ' + (item.status || 'pending');
-    entry.append(title, detail);
+    const price = document.createElement('p');
+    price.className = 'seller-listing__price';
+    price.textContent = 'SAR ' + Number(item.price || 0).toFixed(2);
+    const state = document.createElement('span');
+    state.className = 'seller-listing__status';
+    state.textContent = String(item.status || 'pending').replace(/_/g, ' ');
+    entry.append(photo, title, price, state);
     if (item.status === 'pending') {
       const editButton = document.createElement('button');
       editButton.type = 'button';
@@ -333,16 +351,16 @@ async function loadMyListings(userId) {
     }
     container.appendChild(entry);
     if (item.image_path && typeof item.image_path === 'string') {
-      // The pending-media bucket is private. Use a short-lived URL only for the signed-in seller.
+      // Keep private pending photos accessible only through short-lived seller signed URLs.
       supabaseClient.storage.from('product-media').createSignedUrl(item.image_path, 120)
         .then(({ data: photoData, error: photoError }) => {
           if (photoError || !photoData?.signedUrl) return;
-          const photo = document.createElement('img');
-          photo.src = photoData.signedUrl;
-          photo.alt = 'Main photo for ' + (item.title || 'vintage item');
-          photo.loading = 'lazy';
-          photo.style.cssText = 'display:block;width:100%;max-width:220px;max-height:220px;object-fit:contain;border:1px solid #59492f;border-radius:8px;margin:10px 0';
-          entry.insertBefore(photo, detail);
+          const img = document.createElement('img');
+          img.className = 'seller-listing__photo';
+          img.src = photoData.signedUrl;
+          img.alt = 'Main photo for ' + (item.title || 'vintage item');
+          img.loading = 'lazy';
+          photo.replaceWith(img);
         })
         .catch(() => {});
     }
