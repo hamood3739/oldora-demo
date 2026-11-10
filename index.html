@@ -1,115 +1,99 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
-  <title>OLDORA | Vintage Marketplace</title>
-  <style>
-    :root {
-      --gold: #c4a46a;
-      --black: #101010;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      background: var(--black);
-      color: #f5f0e6;
-      font-family: Georgia, serif;
-      text-align: center;
-    }
-
-    header {
-      padding: 45px 20px 25px;
-      border-bottom: 1px solid #4b3d28;
-    }
-
-    .hourglass {
-      font-size: 55px;
-      color: var(--gold);
-    }
-
-    h1 {
-      color: var(--gold);
-      font-size: 46px;
-      letter-spacing: 7px;
-      margin: 12px 0;
-    }
-
-    .tagline {
-      font-style: italic;
-      color: #d6c5a6;
-    }
-
-    main {
-      padding: 65px 22px;
-    }
-
-    h2 {
-      color: var(--gold);
-      font-size: 27px;
-    }
-
-    p {
-      line-height: 1.8;
-    }
-
-    .button {
-      display: inline-block;
-      margin: 12px 6px;
-      padding: 14px 23px;
-      border: 1px solid var(--gold);
-      border-radius: 5px;
-      color: var(--gold);
-      text-decoration: none;
-      font-family: Arial, sans-serif;
-    }
-
-    .button.primary {
-      background: var(--gold);
-      color: var(--black);
-    }
-
-    footer {
-      padding: 25px;
-      color: #a99b83;
-      border-top: 1px solid #4b3d28;
-      font-size: 13px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101010">
+<title>OLDORA | Every Item Has a Story</title>
+<style>
+:root{--gold:#c4a46a;--bg:#101010;--panel:#1b1916;--line:#5c4b32;--cream:#f5f0e6}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--cream);font-family:Georgia,serif}a{color:inherit}
+header{border-bottom:1px solid var(--line);padding:18px max(18px,calc((100vw - 1120px)/2));display:flex;align-items:center;justify-content:space-between;gap:14px}
+.logo{color:var(--gold);letter-spacing:4px;font-size:clamp(22px,4vw,32px);font-weight:bold;text-decoration:none;white-space:nowrap}
+nav{display:flex;gap:16px;align-items:center;font:14px Arial,sans-serif}nav a{text-decoration:none}nav a:hover,.category:hover{color:var(--gold)}
+main{max-width:1120px;margin:auto;padding:0 18px 60px}
+.hero{text-align:center;padding:70px 12px 55px;background:radial-gradient(ellipse at center,#30291c 0%,#101010 65%)}
+.eyebrow{color:var(--gold);font:12px Arial,sans-serif;letter-spacing:3px;text-transform:uppercase}
+h1{font-size:clamp(34px,7vw,64px);color:var(--gold);margin:12px 0 18px;line-height:1.15}
+.hero p{max-width:580px;margin:0 auto;color:#d6c5a6;line-height:1.8}
+.actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:25px}
+.btn{border:1px solid var(--gold);color:var(--gold);padding:13px 20px;border-radius:7px;text-decoration:none;font:15px Arial,sans-serif;display:inline-block}
+.btn.primary{background:var(--gold);color:var(--bg)}
+h2{color:var(--gold);font-size:27px;margin:30px 0 16px}
+.search-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(140px,1fr);gap:10px}
+input,select{width:100%;padding:14px;border:1px solid #756143;background:#22201d;color:var(--cream);border-radius:8px;font:16px Arial,sans-serif}
+.categories{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0 24px}
+.category{border:1px solid var(--line);background:var(--panel);border-radius:100px;padding:9px 13px;color:#d9c7a5;font:13px Arial,sans-serif;cursor:pointer}
+.category[aria-pressed="true"]{background:var(--gold);color:#101010;border-color:var(--gold)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,235px),1fr));gap:18px}
+.product{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+.product img,.photo-placeholder{width:100%;aspect-ratio:4/3;object-fit:contain;background:#27231e;border-radius:8px}
+.photo-placeholder{display:grid;place-items:center;color:#ab9b7f;font:14px Arial,sans-serif}
+.product h3{font-size:19px;line-height:1.35;overflow-wrap:anywhere}
+.price{font:bold 19px Arial,sans-serif;color:var(--gold)}
+.meta{font:13px Arial,sans-serif;color:#c9baa1}
+.message{padding:35px 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-align:center;color:#d9c7a5;line-height:1.7}
+.message a{color:var(--gold)}
+footer{border-top:1px solid var(--line);padding:26px;text-align:center;color:#b6a68b;font:13px Arial,sans-serif}
+@media(max-width:480px){header{padding:16px}nav{gap:10px;font-size:12px}.search-row{grid-template-columns:1fr}.hero{padding:48px 8px 40px}}
+</style>
 </head>
 <body>
-  <header>
-    <div class="hourglass">⌛</div>
-    <h1>OLDORA</h1>
-    <p class="tagline">Every Item Has a Story</p>
-  </header>
-
-  <main>
-    <h2>Discover Timeless Treasures</h2>
-    <p>
-      A marketplace dedicated to authentic
-      vintage items at least 20 years old.
-    </p>
-
-    <a class="button primary" href="#coming-soon">
-      Explore Collection
-    </a>
-
-    <a class="button" href="#coming-soon">
-      Sell Your Vintage
-    </a>
-
-    <p id="coming-soon">
-      Our marketplace is coming soon.
-    </p>
-  </main>
-
-  <footer>
-    OLDORA &copy; 2026
-  </footer>
+<header><a class="logo" href="./">⌛ OLDORA</a><nav><a href="#collection">Explore</a><a href="auth.html">Sign in</a><a href="dashboard.html">Sell</a></nav></header>
+<main>
+<section class="hero">
+<div class="eyebrow">A curated vintage marketplace</div>
+<h1>Every Item Has a Story</h1>
+<p>Discover timeless treasures, extraordinary finds, and objects with a past. OLDORA celebrates authentic vintage pieces aged 20 years or more.</p>
+<div class="actions"><a class="btn primary" href="#collection">Explore Collection</a><a class="btn" href="auth.html">Start Selling</a></div>
+</section>
+<section id="collection">
+<h2>Discover Vintage Treasures</h2>
+<div class="search-row"><input id="search" type="search" aria-label="Search listings" placeholder="Search vintage treasures..." autocomplete="off"><select id="category" aria-label="Filter by category"><option value="">All categories</option></select></div>
+<div id="categories" class="categories" aria-label="Popular categories"></div>
+<p id="count" class="meta" role="status">Loading published treasures...</p>
+<div id="products" class="grid"></div>
+<div id="empty" class="message" hidden></div>
+</section>
+</main>
+<footer>OLDORA © 2026 · Every Item Has a Story · Free listings · 2% commission on completed sales</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const categories=['Classic Cars','Classic Motorcycles','Antiques & Collectibles','Vintage Watches & Clocks','Vintage Electronics','Cameras & Photography','Furniture & Home Décor','Coins & Banknotes','Stamps & Postcards','Books & Magazines','Art & Paintings','Jewelry & Accessories','Fashion & Clothing','Toys & Games','Musical Instruments','Automotive Parts','Historical Memorabilia','Traditional & Heritage Items','Other Vintage Items'];
+const select=document.getElementById('category'),chips=document.getElementById('categories'),grid=document.getElementById('products'),empty=document.getElementById('empty'),count=document.getElementById('count'),search=document.getElementById('search');
+categories.forEach(c=>select.add(new Option(c,c)));
+['All',...categories.slice(0,7)].forEach(c=>{const b=document.createElement('button');b.type='button';b.className='category';b.textContent=c;b.dataset.value=c==='All'?'':c;b.addEventListener('click',()=>{select.value=b.dataset.value;render()});chips.append(b)});
+let listings=[],loadFailed=false;
+function render(){
+const q=search.value.trim().toLocaleLowerCase(),cat=select.value;
+chips.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.value===cat)));
+const shown=listings.filter(x=>(!cat||x.category===cat)&&(!q||(x.title||'').toLocaleLowerCase().includes(q)||(x.description||'').toLocaleLowerCase().includes(q)));
+grid.replaceChildren();empty.hidden=true;
+count.textContent='Showing '+shown.length+' published '+(shown.length===1?'item':'items');
+if(!shown.length){empty.hidden=false;empty.textContent=loadFailed?'Published listings could not be loaded right now. Please try again later.':listings.length?'No items match your search. Try another category or keyword.':'Our collection is being curated. Check back soon for published vintage treasures.';return}
+shown.forEach(item=>{
+const card=document.createElement('article');card.className='product';
+const photo=document.createElement('div');photo.className='photo-placeholder';photo.textContent='Photo coming soon';
+if(item.image_path&&typeof item.image_path==='string'&&!item.image_path.includes('..')){
+ // Publicly approved images must come from the separate public bucket, never the private pending bucket.
+ const url=client.storage.from('approved-product-media').getPublicUrl(item.image_path).data.publicUrl;
+ const img=document.createElement('img');img.src=url;img.alt='Photo of '+(item.title||'vintage item');img.loading='lazy';img.onerror=()=>img.replaceWith(photo);card.append(img);
+}else card.append(photo);
+const h=document.createElement('h3');h.textContent=item.title||'Vintage item';
+const p=document.createElement('p');p.className='price';p.textContent='SAR '+Number(item.price||0).toFixed(2);
+const meta=document.createElement('p');meta.className='meta';meta.textContent=item.category||'Vintage collectible';
+card.append(h,p,meta);grid.append(card)
+});
+}
+search.addEventListener('input',render);select.addEventListener('change',render);
+const client=window.supabase?.createClient('https://hakjlkltjwvatzgasvos.supabase.co','sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb');
+(async()=>{if(!client){loadFailed=true;render();return}
+try{
+const {data,error}=await client.from('products').select('id,title,description,price,category,image_path').eq('status','published').eq('age_verified',true).order('created_at',{ascending:false}).limit(100);
+if(error)throw error;listings=data||[];
+}catch(e){loadFailed=true;console.error('Unable to load public listings',e)}
+render()
+})();
+</script>
 </body>
 </html>
