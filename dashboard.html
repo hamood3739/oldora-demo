@@ -228,7 +228,7 @@ visibility: hidden;
           <option value="Historical Memorabilia">Historical Memorabilia</option>
           <option value="Traditional &amp; Heritage Items">Traditional &amp; Heritage Items</option>
           <option value="Other Vintage Items">Other Vintage Items</option>
-          <option value="Modern Collectibles">Retro Collectibles (15–19 years)</option>
+          <option value="Retro Collectibles">Retro Collectibles (15–19 years)</option>
         </select>
         <label for="itemCondition">Condition</label>
         <select id="itemCondition" required>
@@ -671,7 +671,7 @@ document.getElementById('checkListing').addEventListener('click', () => {
   const age = Number(get('itemAge'));
   const year = Number(get('itemYear'));
   const photos = Array.from(document.getElementById('itemPhotos').files);
-  const modern = get('itemCategory') === 'Modern Collectibles';
+  const modern = get('itemCategory') === 'Retro Collectibles';
   const minAge = modern ? 15 : 20;
   const maxYear = new Date().getFullYear() - minAge;
   if (!get('itemTitle')) issues.push('Add an item title.');
@@ -697,7 +697,7 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
   const button = document.getElementById('listingSubmit');
   const message = document.getElementById('listingMessage');
   const age = Number(document.getElementById('itemAge').value);
-  const modern = document.getElementById('itemCategory').value === 'Modern Collectibles';
+  const modern = document.getElementById('itemCategory').value === 'Retro Collectibles';
   const minAge = modern ? 15 : 20;
   if (!Number.isInteger(age) || age < minAge || (modern && age > 19)) {
     message.textContent = modern ? 'Retro Collectibles must be 15–19 years old.' : 'This category requires items at least 20 years old.';
