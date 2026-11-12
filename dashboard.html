@@ -173,7 +173,7 @@ visibility: hidden;
 
     <section class="card">
       <h3>Add a Vintage Item</h3>
-      <p>Classic and vintage categories require 20+ years. Modern Collectibles accepts items aged 15–19 years. Listings remain pending until verification is enabled.</p>
+      <p>Classic and vintage categories require 20+ years. Retro Collectibles accepts items aged 15–19 years. Listings remain pending until verification is enabled.</p>
       <form id="listingForm">
         <h4 style="color:var(--gold)">Listing Readiness Check</h4>
         <p class="muted">Checks your form before submission. This is not proof of authenticity or age verification.</p>
@@ -228,7 +228,7 @@ visibility: hidden;
           <option value="Historical Memorabilia">Historical Memorabilia</option>
           <option value="Traditional &amp; Heritage Items">Traditional &amp; Heritage Items</option>
           <option value="Other Vintage Items">Other Vintage Items</option>
-          <option value="Modern Collectibles">Modern Collectibles (15–19 years)</option>
+          <option value="Modern Collectibles">Retro Collectibles (15–19 years)</option>
         </select>
         <label for="itemCondition">Condition</label>
         <select id="itemCondition" required>
@@ -677,7 +677,7 @@ document.getElementById('checkListing').addEventListener('click', () => {
   if (!get('itemTitle')) issues.push('Add an item title.');
   if (!get('itemDescription')) issues.push('Add a description.');
   if (!(Number(get('itemPrice')) > 0)) issues.push('Enter a valid price.');
-  if (!Number.isInteger(age) || age < minAge || (modern && age > 19)) issues.push(modern ? 'Modern Collectibles must be 15–19 years old.' : 'This category requires at least 20 years.');
+  if (!Number.isInteger(age) || age < minAge || (modern && age > 19)) issues.push(modern ? 'Retro Collectibles must be 15–19 years old.' : 'This category requires at least 20 years.');
   if (!Number.isInteger(year) || year > maxYear || year < 1) issues.push('Check the manufacture year for the selected category.');
   if (Number.isInteger(age) && Number.isInteger(year) && Math.abs((new Date().getFullYear() - year) - age) > 1) issues.push('Item age and manufacture year do not agree.');
   if (!get('itemOrigin')) issues.push('Enter country of origin.');
@@ -700,7 +700,7 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
   const modern = document.getElementById('itemCategory').value === 'Modern Collectibles';
   const minAge = modern ? 15 : 20;
   if (!Number.isInteger(age) || age < minAge || (modern && age > 19)) {
-    message.textContent = modern ? 'Modern Collectibles must be 15–19 years old.' : 'This category requires items at least 20 years old.';
+    message.textContent = modern ? 'Retro Collectibles must be 15–19 years old.' : 'This category requires items at least 20 years old.';
     return;
   }
   const price = Number(document.getElementById('itemPrice').value);
@@ -715,7 +715,7 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
     return;
   }
   if (modern && new Date().getFullYear() - year > 20) {
-    message.textContent = 'Modern Collectibles is reserved for items aged 15–19 years.';
+    message.textContent = 'Retro Collectibles is reserved for items aged 15–19 years.';
     return;
   }
   if (age < new Date().getFullYear() - year - 1 || age > new Date().getFullYear() - year + 1) {
