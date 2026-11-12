@@ -113,7 +113,7 @@ visibility: hidden;
 
   <main>
     <h2>Seller Dashboard</h2>
-    <p><a class="button" href="messages.html">Open Private Messages</a> <a class="button" href="./#collection">View Marketplace</a></p>
+    <p><a class="button" href="./#collection">View Marketplace</a></p>
     <p class="muted">
       Manage your timeless treasures.
     </p>
@@ -342,6 +342,11 @@ async function loadMyListings(userId) {
     state.className = 'seller-listing__status';
     state.textContent = String(item.status || 'pending').replace(/_/g, ' ');
     entry.append(photo, title, price, state);
+    const messagesLink = document.createElement('a');
+    messagesLink.className = 'button';
+    messagesLink.href = 'messages.html?listing=' + encodeURIComponent(String(item.id));
+    messagesLink.textContent = 'Messages for This Item';
+    entry.appendChild(messagesLink);
     if (item.status === 'pending') {
       const editButton = document.createElement('button');
       editButton.type = 'button';
