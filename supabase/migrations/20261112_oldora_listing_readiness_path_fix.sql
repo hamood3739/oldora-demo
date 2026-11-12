@@ -37,7 +37,7 @@ begin
    'Provide 5 to 10 photographs'::text;
  select coalesce(bool_and(
     jsonb_typeof(v.value)='string' and
-    (v.value #>> '{}') ~ ('^' || p.seller_id::text || '/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[^/]+[.](jpg|jpeg|png|webp)
+    (v.value #>> '{}') ~ ('^' || p.seller_id::text || '/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[^/]+[.](jpg|jpeg|png|webp)$') and
     (v.value #>> '{}') not like '%..%' and
     (v.value #>> '{}') not like '%://%'
  ),false) into valid_paths
@@ -45,17 +45,6 @@ begin
  return query select 'Photo path format'::text,
    (n between 5 and 10 and valid_paths and p.image_path is not null and photos ? p.image_path),
    'Checks paths under seller-owned UUID upload folders; does not prove files exist or match the item'::text;
-end $$;
-revoke all on function public.oldora_listing_readiness(bigint) from public,anon;
-grant execute on function public.oldora_listing_readiness(bigint) to authenticated;
-commit;) and
-    (v.value #>> '{}') not like '%..%' and
-    (v.value #>> '{}') not like '%://%'
- ),false) into valid_paths
- from jsonb_array_elements(photos) v(value);
- return query select 'Photo path format'::text,
-   (n between 5 and 10 and valid_paths and p.image_path is not null and photos ? p.image_path),
-   'Checks submitted paths match seller and listing IDs; does not prove files exist in private storage'::text;
 end $$;
 revoke all on function public.oldora_listing_readiness(bigint) from public,anon;
 grant execute on function public.oldora_listing_readiness(bigint) to authenticated;
