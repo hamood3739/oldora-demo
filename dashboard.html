@@ -408,6 +408,11 @@ async function loadMyListings(userId) {
     messagesLink.textContent = '💬 Chat';
     actions.appendChild(messagesLink);
     entry.append(actions, feedback);
+    const previewLink = document.createElement('a');
+    previewLink.className = 'button';
+    previewLink.href = 'preview.html?id=' + encodeURIComponent(String(item.id));
+    previewLink.textContent = 'Preview My Listing (Private)';
+    entry.appendChild(previewLink);
     if (item.status === 'pending') {
       const editButton = document.createElement('button');
       editButton.type = 'button';
