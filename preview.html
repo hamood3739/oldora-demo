@@ -4,7 +4,7 @@
 <body><header><a href="./">⌛ OLDORA</a><a href="dashboard.html">Seller Dashboard</a></header><main><h1>Private Listing Preview</h1><div class="notice">PRIVATE TEST PREVIEW — Visible only to the signed-in listing owner. This listing is not published, approved, or available for purchase. Do not share this link as a public listing.</div><p id="status" role="status">Checking your account and listing...</p><section id="item" hidden><h2 id="title"></h2><p id="price"></p><div id="gallery" class="gallery"></div><section class="card"><h2>Item details</h2><dl id="facts"></dl></section><section class="card"><h2>Description</h2><p id="description"></p></section><section class="card"><h2>Restoration & Repairs</h2><p id="repairs"></p></section></section></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script>
 (async()=>{const status=document.getElementById('status');try{
-const id=new URLSearchParams(location.search).get('id');if(!id||!/^[1-9]\\d{0,17}$/.test(id))throw Error('Invalid listing link.');
+const id=new URLSearchParams(location.search).get('id');if(!id||!/^[1-9]\d{0,17}$/.test(id))throw Error('Invalid listing link.');
 const db=window.supabase.createClient('https://hakjlkltjwvatzgasvos.supabase.co','sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb');
 const {data:auth,error:authError}=await db.auth.getUser();if(authError||!auth.user)throw Error('Sign in to view your private preview.');
 const {data,error}=await db.from('products').select('id,seller_id,title,price,status,description,restoration_repairs,category,condition,item_age,manufacture_year,country_of_origin,materials,image_path,image_urls').eq('id',id).eq('seller_id',auth.user.id).maybeSingle();
