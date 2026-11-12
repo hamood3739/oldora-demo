@@ -410,7 +410,7 @@ async function loadMyListings(userId) {
     entry.append(actions, feedback);
     const previewLink = document.createElement('a');
     previewLink.className = 'button';
-    previewLink.href = 'preview.html?id=' + encodeURIComponent(String(item.id));
+    previewLink.href = 'preview.html?version=842c40ea&id=' + encodeURIComponent(String(item.id));
     previewLink.textContent = 'Preview My Listing (Private)';
     entry.appendChild(previewLink);
     if (item.status === 'pending') {
