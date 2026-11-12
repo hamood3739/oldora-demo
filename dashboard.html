@@ -98,6 +98,11 @@ visibility: hidden;
     .listing-actions button[aria-pressed="true"] { background:var(--gold); color:var(--black); }
     .listing-actions__feedback { margin:0; font:12px/1.4 Arial,sans-serif; }
     .listing-actions__feedback:empty { display:none; }
+    .edit-photo-row { display:flex; align-items:center; gap:12px; margin:12px 0; padding:9px; border:1px solid #59492f; border-radius:9px; }
+    .edit-photo-preview { width:110px; height:90px; flex:none; background:#27231d; border-radius:7px; display:grid; place-items:center; color:#b9ad98; text-align:center; font:12px Arial,sans-serif; overflow:hidden; }
+    .edit-photo-preview img { width:100%; height:100%; object-fit:contain; }
+    .edit-photo-details { display:flex; flex:1; flex-direction:column; align-items:flex-start; }
+    .edit-photo-details .button { margin-top:8px; font-size:13px; }
     .muted { color: #b9ad98; }
     [hidden] { display: none !important; }
 
@@ -469,7 +474,9 @@ async function loadMyListings(userId) {
 let editingPhotoPaths = [];
 let editingOriginalPaths = [];
 let editingOriginalCover = '';
+let editPhotoRenderVersion = 0;
 function refreshEditPhotos() {
+  const version = ++editPhotoRenderVersion;
   const list = document.getElementById('editPhotoList');
   const covers = document.getElementById('editCover');
   const previousCover = covers.value || editingOriginalCover;
@@ -478,24 +485,50 @@ function refreshEditPhotos() {
   editingPhotoPaths.forEach((path, index) => {
     covers.add(new Option('Photo ' + (index + 1), path));
     const line = document.createElement('div');
-    line.style.cssText = 'display:flex;gap:12px;align-items:center;margin:10px 0;flex-wrap:wrap';
-    const name = document.createElement('span');
+    line.className = 'edit-photo-row';
+    const preview = document.createElement('div');
+    preview.className = 'edit-photo-preview';
+    preview.textContent = 'Loading photo...';
+    const details = document.createElement('div');
+    details.className = 'edit-photo-details';
+    const name = document.createElement('strong');
     name.textContent = 'Photo ' + (index + 1);
     const remove = document.createElement('button');
     remove.type = 'button';
     remove.className = 'button';
-    remove.textContent = 'Remove';
-    remove.disabled = editingPhotoPaths.length <= 5;
+    remove.textContent = 'Remove photo';
     remove.addEventListener('click', () => {
       editingPhotoPaths.splice(index, 1);
       refreshEditPhotos();
     });
-    line.append(name, remove);
+    details.append(name, remove);
+    line.append(preview, details);
     list.append(line);
+    supabaseClient.storage.from('product-media').createSignedUrl(path, 300)
+      .then(({ data, error }) => {
+        if (version !== editPhotoRenderVersion || !preview.isConnected) return;
+        if (error || !data?.signedUrl) {
+          preview.textContent = 'Preview unavailable';
+          return;
+        }
+        const img = document.createElement('img');
+        img.src = data.signedUrl;
+        img.alt = 'Existing listing photo ' + (index + 1);
+        img.loading = 'lazy';
+        img.onerror = () => { preview.textContent = 'Preview unavailable'; };
+        preview.replaceChildren(img);
+      })
+      .catch(() => {
+        if (version === editPhotoRenderVersion && preview.isConnected)
+          preview.textContent = 'Preview unavailable';
+      });
   });
   covers.disabled = !editingPhotoPaths.length;
   if (editingPhotoPaths.length) covers.value = editingPhotoPaths.includes(previousCover) ? previousCover : editingPhotoPaths[0];
-  document.getElementById('editPhotoCount').textContent = editingPhotoPaths.length + ' existing photos selected (5–10 required). Newly selected photos will be added on Save.';
+  const newFiles = document.getElementById('editAddPhotos').files?.length || 0;
+  document.getElementById('editPhotoCount').textContent =
+    editingPhotoPaths.length + ' existing + ' + newFiles +
+    ' new photos. Keep 5–10 total before saving. Removed photos are not deleted until you save changes.';
 }
 function openListingEditor(item) {
   const editor = document.getElementById('editListingCard');
@@ -515,7 +548,7 @@ function openListingEditor(item) {
 }
 document.getElementById('editAddPhotos').addEventListener('change', () => {
   const files = Array.from(document.getElementById('editAddPhotos').files);
-  document.getElementById('editPhotoCount').textContent = editingPhotoPaths.length + ' existing + ' + files.length + ' new photos (5–10 total required).';
+  refreshEditPhotos();
 });
 document.getElementById('cancelEdit').addEventListener('click', () => {
   document.getElementById('editListingCard').hidden = true;
