@@ -30,11 +30,11 @@ begin
 
   if new.manufacture_year is null
      or new.manufacture_year < 1000
-     or new.manufacture_year > pg_catalog.extract(year from current_date)::integer - min_age then
+     or new.manufacture_year > extract(year from current_date)::integer - min_age then
     raise exception 'Manufacture year does not meet the selected category age requirement.';
   end if;
 
-  calendar_age := pg_catalog.extract(year from current_date)::integer - new.manufacture_year;
+  calendar_age := extract(year from current_date)::integer - new.manufacture_year;
   if pg_catalog.abs(calendar_age - new.item_age) > 1 then
     raise exception 'Item age and manufacture year do not agree.';
   end if;
