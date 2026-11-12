@@ -145,7 +145,7 @@ visibility: hidden;
 
     <section class="card" id="editListingCard" hidden>
       <h3>Edit Pending Listing</h3>
-      <p class="muted">Manage 5–10 photos while your listing is pending review. Changes are saved only when you press Save Changes.</p>
+      <p class="muted">Manage 5–10 photos while your listing is pending review. Changes are saved only when you press Save Changes.</p><p class="muted"><strong>Photo review:</strong> Upload photographs of the actual item named in this listing. Landscape, stock, unrelated, or misleading images cannot be approved. The readiness check only validates technical details, not photo authenticity.</p>
       <form id="editListingForm">
         <input type="hidden" id="editListingId">
         <label for="editTitle">Item title</label>
@@ -174,7 +174,7 @@ visibility: hidden;
         <p class="muted">Checks your form before submission. This is not proof of authenticity or age verification.</p>
         <button class="button" id="checkListing" type="button">Check Listing</button>
         <p class="muted" id="readinessResult" role="status" aria-live="polite"></p>
-        <label for="itemPhotos">Product Photos (5–10 images)</label>
+        <p class="muted"><strong>Before submitting:</strong> All 5–10 photos must show the actual item for sale. The item remains private until its details, age evidence, and photos are reviewed. A passed technical check does not approve an item.</p><label for="itemPhotos">Product Photos (5–10 images)</label>
         <input id="itemPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
         <p class="muted">Choose at least 5 clear photos showing all sides and any damage. Maximum 10 photos, 10 MB each.</p>
         <label for="mainPhoto">Main Photo (cover image)</label>
