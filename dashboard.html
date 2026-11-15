@@ -137,6 +137,14 @@ visibility: hidden;
       Manage your timeless treasures.
     </p>
 
+    <section class="card" aria-labelledby="commissionHistoryHeading">
+      <h3 id="commissionHistoryHeading">My Sales & Commissions</h3>
+      <p class="muted">Your completed sales and OLDORA's 2% commission. A due commission is not a payment confirmation.</p>
+      <p id="commissionHistoryStatus" role="status">Loading commission history...</p>
+      <div id="commissionHistory" style="display:grid;gap:12px"></div>
+      <p id="commissionHistoryTotal" style="color:var(--gold);font-weight:bold"></p>
+    </section>
+
     <section class="card">
       <h3>My Listings</h3>
       <label for="listingSearch">Search my listings</label>
@@ -148,6 +156,8 @@ visibility: hidden;
         <option value="approved">Approved</option>
         <option value="published">Published</option>
         <option value="rejected">Rejected</option>
+        <option value="sold">Sold</option>
+        <option value="withdrawn">Withdrawn</option>
       </select>
       <p id="listingsStatus" class="muted" role="status">Loading your listings...</p>
       <div id="myListings"></div>
@@ -300,7 +310,7 @@ async function checkLogin() {
 
     document.getElementById('accountEmail').textContent = 'Signed in as: ' + (data.user.email || 'OLDORA seller');
     document.body.style.visibility = "visible";
-    await loadMyListings(data.user.id);
+    await Promise.all([loadMyListings(data.user.id), loadCommissionHistory(data.user.id)]);
   } catch (error) {
     window.location.replace("auth.html");
   }
@@ -323,6 +333,50 @@ function filterMyListings() {
 }
 document.getElementById('listingSearch').addEventListener('input', filterMyListings);
 document.getElementById('listingFilter').addEventListener('change', filterMyListings);
+
+async function loadCommissionHistory(userId) {
+  const status = document.getElementById('commissionHistoryStatus');
+  const container = document.getElementById('commissionHistory');
+  const total = document.getElementById('commissionHistoryTotal');
+  container.replaceChildren();
+  total.textContent = '';
+  status.textContent = 'Loading commission history...';
+  const { data, error } = await supabaseClient.from('oldora_listing_closures')
+    .select('product_id,was_sold,final_sale_price,commission_amount,commission_status,closed_at')
+    .eq('seller_id', userId)
+    .order('closed_at', { ascending: false });
+  if (error) {
+    status.textContent = 'Unable to load commission history: ' + (error.message || 'Please try again.');
+    return;
+  }
+  if (!data || data.length === 0) {
+    status.textContent = 'No closed listings or recorded sales yet.';
+    return;
+  }
+  const money = value => Number(value || 0).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}) + ' SAR';
+  const due = data.filter(row => row.was_sold && row.commission_status === 'due')
+    .reduce((sum,row) => sum + Number(row.commission_amount || 0),0);
+  status.textContent = 'Recorded listing closures: ' + data.length;
+  for (const row of data) {
+    const article = document.createElement('article');
+    article.style.cssText = 'padding:12px;border:1px solid #59492f;border-radius:9px;background:#181715;overflow-wrap:anywhere';
+    const title = document.createElement('strong');
+    title.style.color = 'var(--gold)';
+    title.textContent = 'Listing #' + row.product_id + (row.was_sold ? ' — Sold' : ' — Withdrawn');
+    const detail = document.createElement('p');
+    detail.style.margin = '7px 0';
+    detail.textContent = row.was_sold
+      ? 'Sale: ' + money(row.final_sale_price) + ' | Commission (2%): ' + money(row.commission_amount)
+      : 'Not sold — no commission';
+    const state = document.createElement('p');
+    state.className = 'muted';
+    state.style.margin = '7px 0 0';
+    state.textContent = 'Commission status: ' + (row.commission_status === 'due' ? 'Due (unpaid)' : row.commission_status === 'not_due' ? 'Not due' : row.commission_status);
+    article.append(title, detail, state);
+    container.appendChild(article);
+  }
+  total.textContent = 'Total commissions due: ' + money(due);
+}
 
 async function loadMyListings(userId) {
   const status = document.getElementById('listingsStatus');
@@ -467,7 +521,7 @@ async function loadMyListings(userId) {
           });
           if (error) throw error;
           result.textContent = 'Listing closed and response saved.';
-          await loadMyListings(userId);
+          await Promise.all([loadMyListings(userId), loadCommissionHistory(userId)]);
         } catch (error) {
           result.textContent = 'Unable to close listing yet. The secure server-side closing feature must be activated: ' + (error.message || 'Please try again.');
           update();
