@@ -1,28 +1,38 @@
-# OLDORA — Safe automatic publishing rollout
+# OLDORA — Automated verification, publication and buyer selection
 
-Status: **Design and implementation checklist — NOT deployed**.
+Status: **Launch preparation only. Automated publishing is NOT deployed.**
 
-## Agreed user experience
-1. Seller submits an item. Listing stays `pending` while automated checks run.
-2. The server checks required fields, 20+ year age, 5–10 images, permitted content, repair disclosure, image-path ownership, and duplicates.
-3. When reliable evidence is insufficient, mark `needs_review` or `needs_info`; do not automatically certify age.
-4. Only a trusted backend can change `pending` to `published`. A seller must never be able to approve their own listing.
-5. A buyer can message the seller **after** publication; chat must enforce authentication and per-conversation access.
-6. Keep original private photos inaccessible until the publication pipeline copies approved media to the public bucket.
-7. Maintain a moderation audit trail and reporting/appeal mechanisms.
+## Approved product lifecycle
 
-## Security prerequisites before enabling automatic publishing
-- Verify existing Supabase RLS and revoke seller permission to update `status`, `age_verified`, and moderation fields; apply a database trigger or column-level grants as defense in depth.
-- Verify the trusted publishing service's credentials are server-side only. Never put service-role keys in GitHub Pages JavaScript.
-- Check actual object existence and ownership in private storage, not just client-submitted paths.
-- Confirm required product fields against live schema, and establish authoritative age evidence standards.
-- Introduce `verification_checks` and `moderation_events` tables and a queue with retries.
-- Copy only approved photos into `approved-product-media`; do not make `product-media` public.
-- Ensure approved listing edits re-enter verification.
-- Test abuse cases (seller attempts status update, forged image paths, duplicate items, invalid age, moderation bypass, chat access to other users).
+1. Seller submits a listing with required fields, 5–10 private photographs, restoration/repair disclosure, and acceptance of the 2% sale commission.
+2. Listing remains `pending`. The seller cannot mark it verified or published.
+3. Automated checks evaluate completeness, age/year consistency, allowed category, image count and path ownership, and required disclosure. Eligible categories: ordinary vintage items **20 years or older**, and **Retro Collectibles 15–19 years**. Never introduce a Modern category or Musical Instruments.
+4. A trusted server-side verification workflow must verify that photo objects actually exist in private storage and perform permitted-content and duplicate checks. Seller-provided age is **not** independently authenticated by form checks alone.
+5. If checks are inconclusive, keep the item unpublished with an appropriate automated `needs_info` / verification-pending result; never falsely award a verified badge. No manual Admin review is required for the initial launch.
+6. Only after verification is genuinely complete may a trusted backend set `age_verified=true` and `status='published'` in a controlled transaction, with an audit record.
+7. Copy or transform only approved photos into the separate `approved-product-media` public bucket. Keep pending images private.
+8. Once published, the item becomes visible in the public collection with its category, price and product page. Buyers can select it, view details and use the **Private Chat** button beneath the product. Conversations remain accessible only to the buyer and seller; the seller replies from Messages.
+9. On a completed sale, the seller records the final sale price. OLDORA calculates a **2% commission** and records it as due; do not treat it as collected automatically.
 
-## First release
-Start with deterministic automated checks and human escalation. Image AI can be added only after reliability and privacy testing. **No claim of automated age authentication based on images alone.**
+## Already implemented in the repository
 
-## Current code status
-The GitHub Pages dashboard still submits listings with `status: 'pending'`. No auto-publishing server, moderation approval, or buyer chat is deployed by this document.
+- Public catalog in `index.html` filters `status='published'` and `age_verified=true`, links to `product.html`.
+- Public product page in `product.html` uses the same visibility checks and links to `messages.html?product=...`.
+- Private chat database migration in `supabase/migrations/20261110_oldora_private_messages.sql` requires a published, verified product for new conversations and restricts messages to the participants.
+- Seller dashboard has readiness checks and listing/commission management. The readiness function is **read-only**.
+- Seller-publication guard exists as a migration, but deployment and live permissions require confirmation.
+
+## Required before activating automatic publication
+
+- Confirm actual Supabase migration status, RLS, seller column permissions and the publication guard on the live database.
+- Implement a trusted server-side queue/worker and audit trail. No service-role secrets in GitHub Pages or browser JavaScript.
+- Verify private photo existence and ownership; safely copy approved images into the public bucket.
+- Implement automated permitted-content and duplicate screening, and a defensible verification policy for item age. Do not claim an item was independently verified without adequate evidence.
+- Confirm the server-side publish transition cannot be called by a seller and is safe to retry.
+- Test published item visibility, image access, selection, chat creation, buyer-to-seller and seller-to-buyer messages, and negative authorization cases using separate test accounts.
+- Confirm English/Arabic UI in both directions, including dynamically created messages, on iPhone Safari.
+- Preserve existing listings, photos, commission records, privacy rules and approved branding throughout.
+
+## Release gate
+
+**Do not enable automatic publication or promise error-free operation until the above checks pass in the live environment.** This document is a plan, not proof of a working deployment.
