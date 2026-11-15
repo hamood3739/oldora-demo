@@ -45,14 +45,14 @@ with checks as (
     else not has_function_privilege('authenticated','public.oldora_requeue_stale_verification(integer,integer)','EXECUTE') end
   union all
   select 'Authenticated cannot insert queue jobs',
-    not has_table_privilege('authenticated','public.oldora_verification_jobs','INSERT')
+    case when to_regclass('public.oldora_verification_jobs') is null then false else not has_table_privilege('authenticated',to_regclass('public.oldora_verification_jobs'),'INSERT') end
     -- Missing relation yields NULL; COALESCE below marks it as failed.
   union all
   select 'Authenticated cannot update queue jobs',
-    not has_table_privilege('authenticated','public.oldora_verification_jobs','UPDATE')
+    case when to_regclass('public.oldora_verification_jobs') is null then false else not has_table_privilege('authenticated',to_regclass('public.oldora_verification_jobs'),'UPDATE') end
   union all
   select 'Authenticated cannot delete queue jobs',
-    not has_table_privilege('authenticated','public.oldora_verification_jobs','DELETE')
+    case when to_regclass('public.oldora_verification_jobs') is null then false else not has_table_privilege('authenticated',to_regclass('public.oldora_verification_jobs'),'DELETE') end
 )
 select name, case when coalesce(passed,false) then 'PASS' else 'FAIL / NOT INSTALLED' end as result
 from checks order by name;
