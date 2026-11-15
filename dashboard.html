@@ -246,6 +246,7 @@ visibility: hidden;
         </select>
         <label for="itemRepairsDetail">Repair details (if applicable)</label>
         <textarea id="itemRepairsDetail" rows="2" placeholder="Describe restoration, replacements, or repairs"></textarea>
+        <div style="border:1px solid var(--gold);border-radius:10px;padding:14px;margin:16px 0"><strong>OLDORA — Commission Agreement</strong><p class="muted">A 2% commission on the final sale price is payable only after a successful sale.</p><label style="display:flex;gap:10px;align-items:flex-start"><input type="checkbox" id="commissionAgreement" required style="width:auto;margin-top:4px"><span>I understand and agree to pay OLDORA 2% of the final sale price after a successful sale.</span></label></div>
         <button type="submit" id="listingSubmit" class="button">Submit for Review</button>
         <p class="muted" id="listingMessage" role="status" aria-live="polite"></p>
       </form>
@@ -693,6 +694,10 @@ document.getElementById('checkListing').addEventListener('click', () => {
 });
 document.getElementById('listingForm').addEventListener('submit', async (event) => {
   event.preventDefault();
+  if (!document.getElementById('commissionAgreement').checked) {
+    document.getElementById('listingMessage').textContent = 'Please agree to the 2% commission before submitting.';
+    return;
+  }
   const button = document.getElementById('listingSubmit');
   const message = document.getElementById('listingMessage');
   const age = Number(document.getElementById('itemAge').value);
