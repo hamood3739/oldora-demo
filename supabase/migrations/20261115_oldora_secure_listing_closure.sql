@@ -1,11 +1,9 @@
--- OLDORA: secure seller closure and commission ledger.
--- Apply in Supabase SQL Editor. Extends the existing status CHECK to permit
--- 'sold' and 'withdrawn' without changing any existing listing rows.
+-- OLDORA secure listing closure and 2% commission ledger.
+-- Run once in Supabase SQL Editor. Preserves existing products.
 begin;
 
--- Preserve every existing allowed status while adding the two closure states.
--- The known constraint is valid_product_status; it must be a CHECK constraint.
-do $
+-- Extend the known status constraint without discarding existing allowed values.
+do $closure$
 declare
   v_def text;
   v_expr text;
@@ -15,10 +13,18 @@ begin
   where c.conrelid='public.products'::regclass
     and c.conname='valid_product_status' and c.contype='c';
   if v_def is null then
-    raise exception 'Expected products status CHECK constraint not found';
+    raise exception 'Expected valid_product_status CHECK constraint not found';
   end if;
-  -- Existing expression is retained verbatim; append two accepted states.
-  v_expr := substring(v_def from '^CHECK \\((.*)\\) if not exists public.oldora_listing_closures (
+  v_expr := substring(v_def from '^CHECK \\((.*)\\)$');
+  if v_expr is null then
+    raise exception 'Unexpected status CHECK format';
+  end if;
+  execute 'alter table public.products drop constraint valid_product_status';
+  execute 'alter table public.products add constraint valid_product_status check ((' || v_expr || ') or status in (''sold'',''withdrawn''))';
+end;
+$closure$;
+
+create table if not exists public.oldora_listing_closures (
   product_id bigint primary key references public.products(id) on delete restrict,
   seller_id uuid not null references auth.users(id),
   was_sold boolean not null,
