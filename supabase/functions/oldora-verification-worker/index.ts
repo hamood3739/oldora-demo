@@ -35,6 +35,16 @@ Deno.serve(async (request) => {
         await db.from('oldora_verification_jobs').update({ state: 'failed', last_error: 'Listing is no longer pending', updated_at: new Date().toISOString() }).eq('product_id', job.product_id);
         continue;
       }
+      const allowedCategories = new Set([
+        'Classic Cars','Classic Motorcycles','Antiques & Collectibles',
+        'Vintage Watches & Clocks','Vintage Electronics','Cameras & Photography',
+        'Furniture & Home Décor','Coins & Banknotes','Stamps & Postcards',
+        'Books & Magazines','Art & Paintings','Jewelry & Accessories',
+        'Fashion & Clothing','Toys & Games','Automotive Parts',
+        'Historical Memorabilia','Traditional & Heritage Items',
+        'Other Vintage Items','Retro Collectibles'
+      ]);
+      const categoryAllowed = allowedCategories.has(product.category);
       const ageMin = product.category === 'Retro Collectibles' ? 15 : 20;
       const ageMax = product.category === 'Retro Collectibles' ? 19 : Number.POSITIVE_INFINITY;
       const claimedAge = Number(product.item_age);
@@ -62,7 +72,7 @@ Deno.serve(async (request) => {
           if (error || !data?.some((file) => file.name === filename)) { photosExist = false; break; }
         }
       }
-      const checks = { fieldsComplete, ageConsistent, validPaths, photosExist, repairDisclosure: typeof product.restoration_repairs === 'string' && Boolean(product.restoration_repairs.trim()) };
+      const checks = { fieldsComplete, categoryAllowed, ageConsistent, validPaths, photosExist, repairDisclosure: typeof product.restoration_repairs === 'string' && Boolean(product.restoration_repairs.trim()) };
       const allBasicChecks = Object.values(checks).every(Boolean);
       // A claimed age and matching photos DO NOT independently authenticate the item's age.
       // Until a defensible independent evidence check is implemented, no item can be auto-published.
