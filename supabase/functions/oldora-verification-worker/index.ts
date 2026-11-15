@@ -40,12 +40,12 @@ Deno.serve(async (request) => {
       const claimedAge = Number(product.item_age);
       const year = Number(product.manufacture_year);
       const currentYear = new Date().getUTCFullYear();
-      const ageConsistent = Number.isInteger(claimedAge) && Number.isInteger(year)
+      const ageConsistent = product.item_age != null && product.manufacture_year != null && Number.isInteger(claimedAge) && Number.isInteger(year)
         && claimedAge >= ageMin && claimedAge <= ageMax && Math.abs((currentYear - year) - claimedAge) <= 1;
-      const fieldsComplete = Boolean(product.title?.trim() && product.description?.trim()
+      const fieldsComplete = Boolean(typeof product.title === 'string' && product.title.trim() && typeof product.description === 'string' && product.description.trim()
         && Number(product.price) > 0 && product.category && product.condition
-        && product.country_of_origin?.trim() && product.materials?.trim()
-        && product.restoration_repairs?.trim());
+        && typeof product.country_of_origin === 'string' && product.country_of_origin.trim() && typeof product.materials === 'string' && product.materials.trim()
+        && typeof product.restoration_repairs === 'string' && product.restoration_repairs.trim());
       const paths: unknown[] = Array.isArray(product.image_urls) ? product.image_urls : [];
       const validPaths = paths.length >= 5 && paths.length <= 10 && paths.includes(product.image_path)
         && paths.every((p) => typeof p === 'string'
@@ -62,7 +62,7 @@ Deno.serve(async (request) => {
           if (error || !data?.some((file) => file.name === filename)) { photosExist = false; break; }
         }
       }
-      const checks = { fieldsComplete, ageConsistent, validPaths, photosExist, repairDisclosure: Boolean(product.restoration_repairs?.trim()) };
+      const checks = { fieldsComplete, ageConsistent, validPaths, photosExist, repairDisclosure: typeof product.restoration_repairs === 'string' && Boolean(product.restoration_repairs.trim()) };
       const allBasicChecks = Object.values(checks).every(Boolean);
       // A claimed age and matching photos DO NOT independently authenticate the item's age.
       // Until a defensible independent evidence check is implemented, no item can be auto-published.
@@ -71,10 +71,11 @@ Deno.serve(async (request) => {
         .update({ state, checks, last_error: null, updated_at: new Date().toISOString() })
         .eq('product_id', job.product_id).eq('state', 'checking');
       if (updateError) throw updateError;
-      await db.from('oldora_verification_events').insert({
+      const { error: eventError } = await db.from('oldora_verification_events').insert({
         product_id: job.product_id, event_type: 'automated_precheck',
         details: { state, checks, publication: 'not_performed' }
       });
+      if (eventError) throw eventError;
       checked++;
     } catch (error) {
       await db.from('oldora_verification_jobs').update({
