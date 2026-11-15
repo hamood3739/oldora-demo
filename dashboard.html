@@ -417,6 +417,67 @@ async function loadMyListings(userId) {
     messagesLink.textContent = '💬 Chat';
     actions.appendChild(messagesLink);
     entry.append(actions, feedback);
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'button';
+    closeButton.textContent = 'End Listing';
+    closeButton.addEventListener('click', () => {
+      const existing = entry.querySelector('.oldora-close-panel');
+      if (existing) { existing.remove(); return; }
+      const panel = document.createElement('section');
+      panel.className = 'oldora-close-panel';
+      panel.style.cssText = 'padding:14px;border:1px solid var(--gold);border-radius:10px;margin-top:12px;text-align:left';
+      const heading = document.createElement('h3');
+      heading.textContent = 'Was this item sold?';
+      const choice = document.createElement('select');
+      choice.setAttribute('aria-label', 'Was this item sold?');
+      [['','Select an answer'],['yes','Yes, sold'],['no','No, not sold']].forEach(([value,label]) => choice.add(new Option(label,value)));
+      const priceLabel = document.createElement('label');
+      priceLabel.textContent = 'Final sale price (SAR)';
+      const priceInput = document.createElement('input');
+      priceInput.type = 'number'; priceInput.min = '0.01'; priceInput.step = '0.01'; priceInput.inputMode = 'decimal';
+      priceLabel.appendChild(priceInput);
+      priceLabel.hidden = true;
+      const calculation = document.createElement('p');
+      calculation.setAttribute('aria-live','polite');
+      const confirm = document.createElement('button');
+      confirm.type = 'button'; confirm.className = 'button'; confirm.textContent = 'Confirm';
+      confirm.disabled = true;
+      const result = document.createElement('p');
+      result.className = 'muted'; result.setAttribute('role','status');
+      const update = () => {
+        priceLabel.hidden = choice.value !== 'yes';
+        const amount = Number(priceInput.value);
+        const valid = priceInput.value.trim() !== '' && Number.isFinite(amount) && amount > 0 && Math.round(amount*100) === amount*100;
+        calculation.textContent = choice.value === 'yes' && valid
+          ? 'OLDORA commission (2%): ' + (Math.round(amount * 2) / 100).toFixed(2) + ' SAR'
+          : choice.value === 'no' ? 'No commission is due for an unsold item.' : '';
+        confirm.disabled = !(choice.value === 'no' || (choice.value === 'yes' && valid));
+      };
+      choice.addEventListener('change', update);
+      priceInput.addEventListener('input', update);
+      confirm.addEventListener('click', async () => {
+        confirm.disabled = true;
+        result.textContent = 'Saving your response...';
+        try {
+          const { error } = await supabaseClient.rpc('oldora_close_listing', {
+            p_product_id: item.id,
+            p_was_sold: choice.value === 'yes',
+            p_sale_price: choice.value === 'yes' ? Number(priceInput.value) : null
+          });
+          if (error) throw error;
+          result.textContent = 'Listing closed and response saved.';
+          await loadMyListings(userId);
+        } catch (error) {
+          result.textContent = 'Unable to close listing yet. The secure server-side closing feature must be activated: ' + (error.message || 'Please try again.');
+          update();
+        }
+      });
+      panel.append(heading, choice, priceLabel, calculation, confirm, result);
+      entry.appendChild(panel);
+    });
+    if (!['sold','withdrawn'].includes(String(item.status || '').toLowerCase())) entry.appendChild(closeButton);
+
     const previewLink = document.createElement('a');
     previewLink.className = 'button';
     previewLink.href = 'preview.html?version=842c40ea&id=' + encodeURIComponent(String(item.id));
