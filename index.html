@@ -71,6 +71,7 @@ ar:{explore:'تصفح',signin:'تسجيل الدخول',sell:'البيع',eyebro
 let currentLang='en';
 function applyLanguage(lang){
  currentLang=lang==='ar'?'ar':'en';
+ localStorage.setItem('oldora_language',currentLang);
  document.documentElement.lang=currentLang;document.documentElement.dir=currentLang==='ar'?'rtl':'ltr';
  document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(translations[currentLang][key])el.textContent=translations[currentLang][key]});
  document.getElementById('languageToggle').textContent=currentLang==='ar'?'English':'العربية';
@@ -112,12 +113,12 @@ card.append(h,p,meta);const link=document.createElement('a');link.className='btn
 }
 search.addEventListener('input',render);select.addEventListener('change',render);
 const client=window.supabase?.createClient('https://hakjlkltjwvatzgasvos.supabase.co','sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb');
-(async()=>{if(!client){loadFailed=true;applyLanguage('en');return}
+(async()=>{if(!client){loadFailed=true;applyLanguage(localStorage.getItem('oldora_language')==='ar'?'ar':'en');return}
 try{
 const {data,error}=await client.from('products').select('id,title,description,price,category,image_path').eq('status','published').eq('age_verified',true).order('created_at',{ascending:false}).limit(100);
 if(error)throw error;listings=data||[];
 }catch(e){loadFailed=true;console.error('Unable to load public listings',e)}
-applyLanguage('en')
+applyLanguage(localStorage.getItem('oldora_language')==='ar'?'ar':'en')
 })();
 </script>
 </body>
