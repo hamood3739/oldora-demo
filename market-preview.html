@@ -109,7 +109,7 @@ if(item.image_path&&typeof item.image_path==='string'&&!item.image_path.includes
 const h=document.createElement('h3');h.textContent=item.title||'Vintage item';
 const p=document.createElement('p');p.className='price';p.textContent='SAR '+Number(item.price||0).toFixed(2);
 const meta=document.createElement('p');meta.className='meta';meta.textContent=item.category?categoryLabel(item.category):(currentLang==='ar'?'مقتنيات قديمة':'Vintage collectible');
-card.append(h,p,meta);const link=document.createElement('a');link.className='btn';link.href='#collection';link.addEventListener('click',e=>{e.preventDefault();alert(currentLang==='ar'?'هذه معاينة فقط. صفحة التفاصيل والمحادثة تعملان للإعلانات المنشورة الحقيقية.':'Preview only. Product details and private chat are available for real published listings.');});link.textContent=translations[currentLang].view;link.setAttribute('aria-label',(currentLang==='ar'?'عرض تفاصيل ':'View details for ')+(item.title||'vintage item'));card.append(link);grid.append(card)
+card.append(h,p,meta);const link=document.createElement('a');link.className='btn';link.href='market-product-preview.html?id='+encodeURIComponent(String(item.id));link.textContent=translations[currentLang].view;link.setAttribute('aria-label',(currentLang==='ar'?'عرض تفاصيل ':'View details for ')+(item.title||'vintage item'));card.append(link);grid.append(card)
 });
 }
 search.addEventListener('input',render);select.addEventListener('change',render);
