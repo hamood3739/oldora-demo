@@ -15,10 +15,12 @@ begin
   if v_def is null then
     raise exception 'Expected valid_product_status CHECK constraint not found';
   end if;
-  v_expr := substring(v_def from '^CHECK \\((.*)\\)$');
-  if v_expr is null then
-    raise exception 'Unexpected status CHECK format';
+  -- pg_get_constraintdef can include nested parentheses; use the CHECK body
+  -- by removing only the outermost CHECK ( ... ) wrapper.
+  if left(v_def, 7) <> 'CHECK (' or right(v_def, 1) <> ')' then
+    raise exception 'Unexpected status CHECK format: %', v_def;
   end if;
+  v_expr := substr(v_def, 8, length(v_def) - 8);
   execute 'alter table public.products drop constraint valid_product_status';
   execute 'alter table public.products add constraint valid_product_status check ((' || v_expr || ') or status in (''sold'',''withdrawn''))';
 end;
