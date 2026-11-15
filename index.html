@@ -58,7 +58,7 @@ footer{border-top:1px solid var(--line);padding:26px;text-align:center;color:#b6
 <footer>OLDORA © 2026 · Free listings · 2% commission on completed sales</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-const categories=['Classic Cars','Classic Motorcycles','Antiques & Collectibles','Vintage Watches & Clocks','Vintage Electronics','Cameras & Photography','Furniture & Home Décor','Coins & Banknotes','Stamps & Postcards','Books & Magazines','Art & Paintings','Jewelry & Accessories','Fashion & Clothing','Toys & Games','Musical Instruments','Automotive Parts','Historical Memorabilia','Traditional & Heritage Items','Other Vintage Items'];
+const categories=['Classic Cars','Classic Motorcycles','Antiques & Collectibles','Vintage Watches & Clocks','Vintage Electronics','Cameras & Photography','Furniture & Home Décor','Coins & Banknotes','Stamps & Postcards','Books & Magazines','Art & Paintings','Jewelry & Accessories','Fashion & Clothing','Toys & Games','Automotive Parts','Historical Memorabilia','Traditional & Heritage Items','Other Vintage Items'];
 const select=document.getElementById('category'),chips=document.getElementById('categories'),grid=document.getElementById('products'),empty=document.getElementById('empty'),count=document.getElementById('count'),search=document.getElementById('search');
 categories.forEach(c=>select.add(new Option(c,c)));
 ['All',...categories.slice(0,7)].forEach(c=>{const b=document.createElement('button');b.type='button';b.className='category';b.textContent=c;b.dataset.value=c==='All'?'':c;b.addEventListener('click',()=>{select.value=b.dataset.value;render()});chips.append(b)});
