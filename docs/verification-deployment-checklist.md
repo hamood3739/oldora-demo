@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-1. In Supabase SQL Editor, review and apply `supabase/migrations/20261115_oldora_automated_verification_queue.sql`. This creates the queue, private audit table and read-only seller policies. It does **not** modify existing product records.
+1. In Supabase SQL Editor, review and apply `supabase/migrations/20261115_oldora_automated_verification_queue.sql`, followed by `supabase/migrations/20261116_oldora_verification_claim.sql`. This creates the queue, private audit table and read-only seller policies. It does **not** modify existing product records.
 2. Confirm the existing seller publication guard is active, and verify RLS and column permissions on `products`. Do not infer protection merely from the presence of a migration file.
 3. Deploy `supabase/functions/oldora-verification-worker/index.ts` as the Edge Function named `oldora-verification-worker`. Since it authenticates a custom worker secret rather than a user JWT, the gateway must be configured to allow invocation without JWT verification **only for this function**; the function itself rejects requests without the exact `OLDORA_WORKER_SECRET`. Never remove the function's own authorization check.
 4. Configure a high-entropy `OLDORA_WORKER_SECRET` in Supabase Edge Function secrets and use the built-in server-side `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. Never expose these in client HTML, browser JavaScript or public CI logs.
@@ -21,7 +21,7 @@
 - All basic checks passing leads to `ready_for_evidence` **only**, not `published`.
 - A claimed age is not independent proof. No verified badge is issued by the precheck.
 - Private photos are not made public. Existing listings, commissions and conversations are unchanged.
-- Retry, failure and concurrent worker behavior must be checked before production scheduling.
+- Concurrent worker claims use a transactional `FOR UPDATE SKIP LOCKED` function. Verify parallel invocations claim distinct jobs. Retry and failure recovery still require testing and implementation before production scheduling.
 - Published listing and two-way chat flow must be tested using separate buyer and seller accounts once a trusted publication pipeline exists.
 
 ## Known limitations before launch
