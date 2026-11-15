@@ -10,6 +10,10 @@
 4. Configure a high-entropy `OLDORA_WORKER_SECRET` in Supabase Edge Function secrets and use the built-in server-side `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. Never expose these in client HTML, browser JavaScript or public CI logs.
 5. Configure a trusted scheduler to POST to the function with `Authorization: Bearer <OLDORA_WORKER_SECRET>`. Do not schedule until staging tests pass.
 
+## Read-only checks before deployment
+
+Run `supabase/checks/oldora_prelaunch_readonly.sql` to inspect permissions and installed components. Run `supabase/checks/oldora_publication_audit_readonly.sql` to identify inconsistent publication states and missing fields without exposing seller data. Review any failures before deploying. Neither script changes database rows; neither independently proves item authenticity.
+
 ## Verify in a safe test environment
 
 - Unauthorized request returns HTTP 401 and performs no work.
