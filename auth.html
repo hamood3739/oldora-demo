@@ -21,26 +21,32 @@
     .switch:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
     .note { color: #b9ad98; font-size: 13px; line-height: 1.7; }
     a { color: var(--gold); }
+    html[dir="rtl"] .panel { text-align: right; }
+    html[dir="rtl"] body { font-family: Tahoma, Arial, sans-serif; }
+    html[dir="rtl"] h1 { font-family: Georgia, serif; }
+    .language-switch { width:auto; padding:9px 17px; margin:5px auto 0; background:transparent; border:1px solid var(--gold); color:var(--gold); }
+    #email, #password { direction:ltr; text-align:left; }
   </style>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
   <div class="logo">⌛</div>
   <h1>OLDORA</h1>
+  <button id="languageSwitch" class="language-switch" type="button">العربية</button>
   <section class="panel">
     <h2 id="heading">Create Account</h2>
     <form id="accountForm">
-      <label for="email">Email Address</label>
+      <label for="email" data-i18n="email">Email Address</label>
       <input id="email" type="email" autocomplete="email" required>
-      <label for="password">Password</label>
+      <label for="password" data-i18n="password">Password</label>
       <input id="password" type="password" minlength="12" required>
-      <p class="note">Use at least 12 characters, including uppercase and lowercase letters and a number.</p>
+      <p class="note" data-i18n="passwordHint">Use at least 12 characters, including uppercase and lowercase letters and a number.</p>
       <button id="submitBtn" type="submit">Sign Up</button>
     </form>
     <p class="switch" id="switchMode" role="button" tabindex="0">Already have an account? Log In</p>
     <p class="note" id="message" role="status" aria-live="polite"></p>
   </section>
-  <p><a href="index.html">Back to OLDORA</a></p>
+  <p><a href="index.html" data-i18n="back">Back to OLDORA</a></p>
   <script>
     const supabaseUrl = 'https://hakjlkltjwvatzgasvos.supabase.co';
     const supabaseKey = 'sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb';
@@ -51,11 +57,30 @@
     const switchMode = document.getElementById('switchMode');
     const message = document.getElementById('message');
     const passwordInput = document.getElementById('password');
+    const authText = {
+      en: {email:'Email Address',password:'Password',passwordHint:'Use at least 12 characters, including uppercase and lowercase letters and a number.',back:'Back to OLDORA',create:'Create Account',welcome:'Welcome Back',signup:'Sign Up',login:'Log In',have:'Already have an account? Log In',newAccount:'New to OLDORA? Create Account',wait:'Please wait...',created:'Account created. Please check your email if confirmation is required.',connection:'Connection error. Please try again.',library:'Supabase library did not load.'},
+      ar: {email:'البريد الإلكتروني',password:'كلمة المرور',passwordHint:'استخدم ١٢ حرفًا على الأقل، تتضمن أحرفًا إنجليزية كبيرة وصغيرة ورقمًا.',back:'العودة إلى OLDORA',create:'إنشاء حساب',welcome:'مرحبًا بعودتك',signup:'إنشاء الحساب',login:'تسجيل الدخول',have:'لديك حساب بالفعل؟ سجّل الدخول',newAccount:'ليس لديك حساب؟ أنشئ حسابًا',wait:'يرجى الانتظار...',created:'تم إنشاء الحساب. تحقق من بريدك الإلكتروني إذا كان تأكيد الحساب مطلوبًا.',connection:'خطأ في الاتصال. حاول مرة أخرى.',library:'تعذر تحميل خدمة تسجيل الدخول.'}
+    };
+    let authLanguage = localStorage.getItem('oldora_language') === 'ar' ? 'ar' : 'en';
+    function authLabel(key) { return authText[authLanguage][key]; }
+    function applyAuthLanguage(lang) {
+      authLanguage = lang === 'ar' ? 'ar' : 'en';
+      localStorage.setItem('oldora_language', authLanguage);
+      document.documentElement.lang = authLanguage;
+      document.documentElement.dir = authLanguage === 'ar' ? 'rtl' : 'ltr';
+      document.getElementById('languageSwitch').textContent = authLanguage === 'ar' ? 'English' : 'العربية';
+      document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = authLabel(el.dataset.i18n); });
+      heading.textContent = authLabel(signUpMode ? 'create' : 'welcome');
+      submitBtn.textContent = authLabel(signUpMode ? 'signup' : 'login');
+      switchMode.textContent = authLabel(signUpMode ? 'have' : 'newAccount');
+    }
+    document.getElementById('languageSwitch').addEventListener('click', () => applyAuthLanguage(authLanguage === 'ar' ? 'en' : 'ar'));
+    applyAuthLanguage(authLanguage);
     function toggleMode() {
       signUpMode = !signUpMode;
-      heading.textContent = signUpMode ? 'Create Account' : 'Welcome Back';
-      submitBtn.textContent = signUpMode ? 'Sign Up' : 'Log In';
-      switchMode.textContent = signUpMode ? 'Already have an account? Log In' : 'New to OLDORA? Create Account';
+      heading.textContent = authLabel(signUpMode ? 'create' : 'welcome');
+      submitBtn.textContent = authLabel(signUpMode ? 'signup' : 'login');
+      switchMode.textContent = authLabel(signUpMode ? 'have' : 'newAccount');
       passwordInput.minLength = signUpMode ? 12 : 1;
       message.textContent = '';
     }
@@ -71,10 +96,10 @@
       const email = document.getElementById('email').value.trim();
       const password = passwordInput.value;
       submitBtn.disabled = true;
-      message.textContent = 'Please wait...';
+      message.textContent = authLabel('wait');
       try {
         if (!supabaseClient) {
-          if (!window.supabase) throw new Error('Supabase library did not load.');
+          if (!window.supabase) throw new Error(authLabel('library'));
           supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         }
         const result = signUpMode
@@ -83,12 +108,12 @@
         if (result.error) {
           message.textContent = result.error.message;
         } else if (signUpMode) {
-          message.textContent = 'Account created. Please check your email if confirmation is required.';
+          message.textContent = authLabel('created');
         } else {
           window.location.replace('dashboard.html');
         }
       } catch (error) {
-        message.textContent = error.message || 'Connection error. Please try again.';
+        message.textContent = error.message || authLabel('connection');
       } finally {
         submitBtn.disabled = false;
       }
