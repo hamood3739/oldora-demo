@@ -302,20 +302,34 @@ const supabaseKey = 'sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb';
   );
   
 async function checkLogin() {
+  // Only redirect if the session is genuinely absent. A listing query failure
+  // must never log the seller out or hide their dashboard.
+  document.body.style.visibility = 'visible';
+  const account = document.getElementById('accountEmail');
   try {
-    const { data, error } =
-      await supabaseClient.auth.getUser();
-
-    if (error || !data.user) {
-      window.location.replace("auth.html");
+    const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+    if (sessionError) throw sessionError;
+    if (!sessionData?.session?.user) {
+      window.location.replace('auth.html?mode=login');
       return;
     }
-
-    document.getElementById('accountEmail').textContent = 'Signed in as: ' + (data.user.email || 'OLDORA seller');
-    document.body.style.visibility = "visible";
-    await Promise.all([loadMyListings(data.user.id), loadCommissionHistory(data.user.id)]);
+    const user = sessionData.session.user;
+    account.textContent = 'Signed in as: ' + (user.email || 'OLDORA seller');
+    const results = await Promise.allSettled([
+      loadMyListings(user.id),
+      loadCommissionHistory(user.id)
+    ]);
+    if (results[0].status === 'rejected') {
+      document.getElementById('listingsStatus').textContent =
+        'Unable to load listings. Please refresh this page.';
+    }
+    if (results[1].status === 'rejected') {
+      document.getElementById('commissionHistoryStatus').textContent =
+        'Unable to load commission history. Your account is still signed in.';
+    }
   } catch (error) {
-    window.location.replace("auth.html");
+    account.textContent = 'Unable to check your session. Please refresh or try again.';
+    console.error('OLDORA session check failed', error);
   }
 }
 
