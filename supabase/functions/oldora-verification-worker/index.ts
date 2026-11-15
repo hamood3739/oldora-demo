@@ -14,6 +14,11 @@ Deno.serve(async (request) => {
   const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if (!url || !key) return new Response('Worker not configured', { status: 503 });
   const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  // Recover only interrupted checks; never retry permanent failures automatically.
+  const { error: recoveryError } = await db.rpc('oldora_requeue_stale_verification', {
+    p_stale_minutes: 30, p_limit: 25
+  });
+  if (recoveryError) return new Response('Recovery unavailable', { status: 503 });
   const { error: queueError } = await db.rpc('oldora_queue_pending_verification', { p_limit: 20 });
   if (queueError) return new Response('Queue unavailable', { status: 503 });
   // Claim jobs in one database transaction; concurrent invocations cannot claim the same job.
