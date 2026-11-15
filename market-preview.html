@@ -76,7 +76,9 @@ footer{border-top:1px solid var(--line);padding:26px;text-align:center;color:#b6
 <script>
 const categories=['Classic Cars','Classic Motorcycles','Antiques & Collectibles','Vintage Watches & Clocks','Vintage Electronics','Cameras & Photography','Furniture & Home Décor','Coins & Banknotes','Stamps & Postcards','Books & Magazines','Art & Paintings','Jewelry & Accessories','Fashion & Clothing','Toys & Games','Automotive Parts','Historical Memorabilia','Traditional & Heritage Items','Other Vintage Items','Retro Collectibles'];
 const categoryArabic={
-'Classic Cars':'السيارات الكلاسيكية','Classic Motorcycles':'الدراجات النارية الكلاسيكية','Antiques & Collectibles':'التحف والمقتنيات','Vintage Watches & Clocks':'الساعات القديمة','Vintage Electronics':'الإلكترونيات القديمة','Cameras & Photography':'الكاميرات والتصوير','Furniture & Home Décor':'الأثاث والديكور المنزلي','Coins & Banknotes':'العملات المعدنية والورقية','Stamps & Postcards':'الطوابع والبطاقات البريدية','Books & Magazines':'الكتب والمجلات','Art & Paintings':'الفنون واللوحات','Jewelry & Accessories':'المجوهرات والإكسسوارات','Fashion & Clothing':'الأزياء والملابس','Toys & Games':'الألعاب','Automotive Parts':'قطع غيار السيارات القديمة','Historical Memorabilia':'التذكارات التاريخية','Traditional & Heritage Items':'المقتنيات التراثية والتقليدية','Other Vintage Items':'مقتنيات قديمة أخرى'};
+'Classic Cars':'السيارات الكلاسيكية','Classic Motorcycles':'الدراجات النارية الكلاسيكية','Antiques & Collectibles':'التحف والمقتنيات','Vintage Watches & Clocks':'الساعات القديمة','Vintage Electronics':'الإلكترونيات القديمة','Cameras & Photography':'الكاميرات والتصوير','Furniture & Home Décor':'الأثاث والديكور المنزلي','Coins & Banknotes':'العملات المعدنية والورقية','Stamps & Postcards':'الطوابع والبطاقات البريدية','Books & Magazines':'الكتب والمجلات','Art & Paintings':'الفنون واللوحات','Jewelry & Accessories':'المجوهرات والإكسسوارات','Fashion & Clothing':'الأزياء والملابس','Toys & Games':'الألعاب','Automotive Parts':'قطع غيار السيارات القديمة','Historical Memorabilia':'التذكارات التاريخية','Traditional & Heritage Items':'المقتنيات التراثية والتقليدية','Other Vintage Items':'مقتنيات قديمة أخرى','Retro Collectibles':'مقتنيات ريترو'};
+const sampleArabic={1:'ساعة ميكانيكية قديمة',2:'كاميرا تصوير كلاسيكية',3:'كرسي خشبي أثري',4:'راديو قديم',5:'سيارة كلاسيكية',6:'مقتنيات ريترو'};
+function itemTitle(item){return currentLang==='ar'?(sampleArabic[item.id]||item.title):item.title}
 function categoryLabel(value){return currentLang==='ar'?(categoryArabic[value]||value):value;}
 const translations={
 en:{explore:'Explore',signin:'Sign in',sell:'Sell',eyebrow:'A curated vintage marketplace',hero:'Discover timeless treasures, extraordinary finds, and objects with a past. OLDORA celebrates authentic vintage pieces aged 20 years or more.',exploreCollection:'Explore Collection',startSelling:'Start Selling',discover:'Discover Vintage Treasures',footer:'OLDORA © 2026 · Free listings · 2% commission on completed sales',search:'Search vintage treasures...',all:'All categories',allChip:'All',showing:'Showing',published:'published',item:'item',items:'items',noMatch:'No items match your search. Try another category or keyword.',noItems:'Our collection is being curated. Check back soon for published vintage treasures.',failed:'Published listings could not be loaded right now. Please try again later.',photo:'Photo coming soon',view:'View Details'},
@@ -88,6 +90,8 @@ function applyLanguage(lang){
  document.documentElement.lang=currentLang;document.documentElement.dir=currentLang==='ar'?'rtl':'ltr';
  document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(translations[currentLang][key])el.textContent=translations[currentLang][key]});
  document.getElementById('languageToggle').textContent=currentLang==='ar'?'English':'العربية';
+ document.querySelector('.demo-banner').innerHTML=currentLang==='ar'?'معاينة توضيحية فقط — المنتجات والأسعار افتراضية. <a href="./">العودة للسوق الفعلي</a>':'Demonstration only — sample products and prices. <a href="./">Return to live marketplace</a>';
+ document.querySelector('.preview-note').textContent=currentLang==='ar'?'معاينة فقط · منتجات تجريبية · لا توجد عمليات شراء أو رسائل':'Preview only · Sample products · No purchases or messages';
  document.getElementById('search').placeholder=translations[currentLang].search;
  document.getElementById('category').options[0].textContent=translations[currentLang].all;
  Array.from(document.getElementById('category').options).forEach(option=>{
@@ -106,7 +110,7 @@ let listings=[],loadFailed=false;
 function render(){
 const q=search.value.trim().toLocaleLowerCase(),cat=select.value;
 chips.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.value===cat)));
-const shown=listings.filter(x=>(!cat||x.category===cat)&&(!q||(x.title||'').toLocaleLowerCase().includes(q)||(x.description||'').toLocaleLowerCase().includes(q)));
+const shown=listings.filter(x=>(!cat||x.category===cat)&&(!q||(x.title||'').toLocaleLowerCase().includes(q)||itemTitle(x).toLocaleLowerCase().includes(q)||(x.description||'').toLocaleLowerCase().includes(q)));
 grid.replaceChildren();empty.hidden=true;
 count.textContent=translations[currentLang].showing+' '+shown.length+' '+(currentLang==='ar'?'تجريبي':'sample')+' '+(shown.length===1?translations[currentLang].item:translations[currentLang].items);
 if(!shown.length){empty.hidden=false;empty.textContent=loadFailed?translations[currentLang].failed:listings.length?translations[currentLang].noMatch:translations[currentLang].noItems;return}
@@ -118,10 +122,10 @@ if(item.image_path&&typeof item.image_path==='string'&&!item.image_path.includes
  const url=client.storage.from('approved-product-media').getPublicUrl(item.image_path).data.publicUrl;
  const img=document.createElement('img');img.src=url;img.alt=(currentLang==='ar'?'صورة المنتج: ':'Photo of ')+(item.title||'vintage item');img.loading='lazy';img.onerror=()=>img.replaceWith(photo);card.append(img);
 }else card.append(photo);
-const h=document.createElement('h3');h.textContent=item.title||'Vintage item';
+const h=document.createElement('h3');h.textContent=itemTitle(item)||'Vintage item';
 const p=document.createElement('p');p.className='price';p.textContent='SAR '+Number(item.price||0).toFixed(2);
 const meta=document.createElement('p');meta.className='meta';meta.textContent=item.category?categoryLabel(item.category):(currentLang==='ar'?'مقتنيات قديمة':'Vintage collectible');
-card.append(h,p,meta);const link=document.createElement('a');link.className='btn';link.href='market-product-preview.html?id='+encodeURIComponent(String(item.id));link.textContent=translations[currentLang].view;link.setAttribute('aria-label',(currentLang==='ar'?'عرض تفاصيل ':'View details for ')+(item.title||'vintage item'));card.append(link);grid.append(card)
+card.append(h,p,meta);const link=document.createElement('a');link.className='btn';link.href='market-product-preview.html?id='+encodeURIComponent(String(item.id));link.textContent=translations[currentLang].view;link.setAttribute('aria-label',(currentLang==='ar'?'عرض تفاصيل ':'View details for ')+(itemTitle(item)||'vintage item'));card.append(link);grid.append(card)
 });
 }
 search.addEventListener('input',render);select.addEventListener('change',render);
