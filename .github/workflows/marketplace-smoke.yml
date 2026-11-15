@@ -1,0 +1,23 @@
+name: OLDORA buyer journey checks
+on:
+  push:
+    paths:
+      - 'index.html'
+      - 'product.html'
+      - 'messages.html'
+      - 'market-preview.html'
+      - 'market-product-preview.html'
+      - 'tests/marketplace-smoke.test.mjs'
+      - '.github/workflows/marketplace-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/marketplace-smoke.test.mjs
