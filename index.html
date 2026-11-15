@@ -61,6 +61,9 @@ footer{border-top:1px solid var(--line);padding:26px;text-align:center;color:#b6
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const categories=['Classic Cars','Classic Motorcycles','Antiques & Collectibles','Vintage Watches & Clocks','Vintage Electronics','Cameras & Photography','Furniture & Home Décor','Coins & Banknotes','Stamps & Postcards','Books & Magazines','Art & Paintings','Jewelry & Accessories','Fashion & Clothing','Toys & Games','Automotive Parts','Historical Memorabilia','Traditional & Heritage Items','Other Vintage Items'];
+const categoryArabic={
+'Classic Cars':'السيارات الكلاسيكية','Classic Motorcycles':'الدراجات النارية الكلاسيكية','Antiques & Collectibles':'التحف والمقتنيات','Vintage Watches & Clocks':'الساعات القديمة','Vintage Electronics':'الإلكترونيات القديمة','Cameras & Photography':'الكاميرات والتصوير','Furniture & Home Décor':'الأثاث والديكور المنزلي','Coins & Banknotes':'العملات المعدنية والورقية','Stamps & Postcards':'الطوابع والبطاقات البريدية','Books & Magazines':'الكتب والمجلات','Art & Paintings':'الفنون واللوحات','Jewelry & Accessories':'المجوهرات والإكسسوارات','Fashion & Clothing':'الأزياء والملابس','Toys & Games':'الألعاب','Automotive Parts':'قطع غيار السيارات القديمة','Historical Memorabilia':'التذكارات التاريخية','Traditional & Heritage Items':'المقتنيات التراثية والتقليدية','Other Vintage Items':'مقتنيات قديمة أخرى'};
+function categoryLabel(value){return currentLang==='ar'?(categoryArabic[value]||value):value;}
 const translations={
 en:{explore:'Explore',signin:'Sign in',sell:'Sell',eyebrow:'A curated vintage marketplace',hero:'Discover timeless treasures, extraordinary finds, and objects with a past. OLDORA celebrates authentic vintage pieces aged 20 years or more.',exploreCollection:'Explore Collection',startSelling:'Start Selling',discover:'Discover Vintage Treasures',footer:'OLDORA © 2026 · Free listings · 2% commission on completed sales',search:'Search vintage treasures...',all:'All categories',allChip:'All',showing:'Showing',published:'published',item:'item',items:'items',noMatch:'No items match your search. Try another category or keyword.',noItems:'Our collection is being curated. Check back soon for published vintage treasures.',failed:'Published listings could not be loaded right now. Please try again later.',photo:'Photo coming soon',view:'View Details'},
 ar:{explore:'تصفح',signin:'تسجيل الدخول',sell:'البيع',eyebrow:'سوق مختار للمقتنيات القديمة',hero:'اكتشف مقتنيات فريدة تحمل عبق الماضي. OLDORA سوق للقطع القديمة الأصيلة التي يبلغ عمرها ٢٠ عامًا فأكثر.',exploreCollection:'استكشف المقتنيات',startSelling:'ابدأ البيع',discover:'اكتشف المقتنيات القديمة',footer:'OLDORA © ٢٠٢٦ · الإدراج مجاني · عمولة ٢٪ بعد إتمام البيع',search:'ابحث عن مقتنيات قديمة...',all:'جميع الفئات',allChip:'الكل',showing:'عرض',published:'منشور',item:'منتج',items:'منتجات',noMatch:'لا توجد منتجات مطابقة. جرّب فئة أو كلمة أخرى.',noItems:'نعمل على تجهيز مجموعتنا. عد قريبًا لاكتشاف المقتنيات.',failed:'تعذر تحميل الإعلانات المنشورة. حاول لاحقًا.',photo:'الصورة قريبًا',view:'عرض التفاصيل'}};
@@ -72,7 +75,12 @@ function applyLanguage(lang){
  document.getElementById('languageToggle').textContent=currentLang==='ar'?'English':'العربية';
  document.getElementById('search').placeholder=translations[currentLang].search;
  document.getElementById('category').options[0].textContent=translations[currentLang].all;
- const allChip=document.querySelector('#categories button[data-value=""]');if(allChip)allChip.textContent=translations[currentLang].allChip;
+ Array.from(document.getElementById('category').options).forEach(option=>{
+   option.textContent=option.value?categoryLabel(option.value):translations[currentLang].all;
+ });
+ document.querySelectorAll('#categories button[data-value]').forEach(button=>{
+   button.textContent=button.dataset.value?categoryLabel(button.dataset.value):translations[currentLang].allChip;
+ });
  render();
 }
 document.getElementById('languageToggle').addEventListener('click',()=>applyLanguage(currentLang==='en'?'ar':'en'));
@@ -93,17 +101,17 @@ const photo=document.createElement('div');photo.className='photo-placeholder';ph
 if(item.image_path&&typeof item.image_path==='string'&&!item.image_path.includes('..')){
  // Publicly approved images must come from the separate public bucket, never the private pending bucket.
  const url=client.storage.from('approved-product-media').getPublicUrl(item.image_path).data.publicUrl;
- const img=document.createElement('img');img.src=url;img.alt='Photo of '+(item.title||'vintage item');img.loading='lazy';img.onerror=()=>img.replaceWith(photo);card.append(img);
+ const img=document.createElement('img');img.src=url;img.alt=(currentLang==='ar'?'صورة المنتج: ':'Photo of ')+(item.title||'vintage item');img.loading='lazy';img.onerror=()=>img.replaceWith(photo);card.append(img);
 }else card.append(photo);
 const h=document.createElement('h3');h.textContent=item.title||'Vintage item';
 const p=document.createElement('p');p.className='price';p.textContent='SAR '+Number(item.price||0).toFixed(2);
-const meta=document.createElement('p');meta.className='meta';meta.textContent=item.category||'Vintage collectible';
-card.append(h,p,meta);const link=document.createElement('a');link.className='btn';link.href='product.html?id='+encodeURIComponent(String(item.id));link.textContent=translations[currentLang].view;link.setAttribute('aria-label','View details for '+(item.title||'vintage item'));card.append(link);grid.append(card)
+const meta=document.createElement('p');meta.className='meta';meta.textContent=item.category?categoryLabel(item.category):(currentLang==='ar'?'مقتنيات قديمة':'Vintage collectible');
+card.append(h,p,meta);const link=document.createElement('a');link.className='btn';link.href='product.html?id='+encodeURIComponent(String(item.id));link.textContent=translations[currentLang].view;link.setAttribute('aria-label',(currentLang==='ar'?'عرض تفاصيل ':'View details for ')+(item.title||'vintage item'));card.append(link);grid.append(card)
 });
 }
 search.addEventListener('input',render);select.addEventListener('change',render);
 const client=window.supabase?.createClient('https://hakjlkltjwvatzgasvos.supabase.co','sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb');
-(async()=>{if(!client){loadFailed=true;render();return}
+(async()=>{if(!client){loadFailed=true;applyLanguage('en');return}
 try{
 const {data,error}=await client.from('products').select('id,title,description,price,category,image_path').eq('status','published').eq('age_verified',true).order('created_at',{ascending:false}).limit(100);
 if(error)throw error;listings=data||[];
