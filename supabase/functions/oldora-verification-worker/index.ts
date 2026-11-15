@@ -16,16 +16,11 @@ Deno.serve(async (request) => {
   const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
   const { error: queueError } = await db.rpc('oldora_queue_pending_verification', { p_limit: 20 });
   if (queueError) return new Response('Queue unavailable', { status: 503 });
-  const { data: jobs, error: jobsError } = await db.from('oldora_verification_jobs')
-    .select('product_id,attempt_count').eq('state', 'queued').order('created_at').limit(10);
-  if (jobsError) return new Response('Jobs unavailable', { status: 503 });
+  // Claim jobs in one database transaction; concurrent invocations cannot claim the same job.
+  const { data: jobs, error: jobsError } = await db.rpc('oldora_claim_verification_jobs', { p_limit: 10 });
+  if (jobsError) return new Response('Job claim unavailable', { status: 503 });
   let checked = 0;
   for (const job of jobs || []) {
-    // Claim atomically so concurrent workers do not process the same queued job.
-    const { data: claimed, error: claimError } = await db.from('oldora_verification_jobs')
-      .update({ state: 'checking', attempt_count: job.attempt_count + 1, updated_at: new Date().toISOString() })
-      .eq('product_id', job.product_id).eq('state', 'queued').select('product_id').maybeSingle();
-    if (claimError || !claimed) continue;
     try {
       const { data: product, error: productError } = await db.from('products')
         .select('id,seller_id,status,age_verified,title,description,price,category,condition,item_age,manufacture_year,country_of_origin,materials,restoration_repairs,image_urls,image_path')
