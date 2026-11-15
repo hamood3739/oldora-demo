@@ -11,6 +11,8 @@
 header{border-bottom:1px solid var(--line);padding:18px max(18px,calc((100vw - 1120px)/2));display:flex;align-items:center;justify-content:space-between;gap:14px}
 .logo{color:var(--gold);letter-spacing:4px;font-size:clamp(22px,4vw,32px);font-weight:bold;text-decoration:none;white-space:nowrap}
 nav{display:flex;gap:16px;align-items:center;font:14px Arial,sans-serif}nav a{text-decoration:none}nav a:hover,.category:hover{color:var(--gold)}
+.lang-toggle{background:transparent;color:var(--gold);border:1px solid var(--gold);border-radius:6px;padding:8px 10px;cursor:pointer;font:14px Arial,sans-serif}
+html[dir="rtl"] body{font-family:Tahoma,Arial,sans-serif}html[dir="rtl"] .logo{letter-spacing:2px}
 main{max-width:1120px;margin:auto;padding:0 18px 60px}
 .hero{text-align:center;padding:70px 12px 55px;background:radial-gradient(ellipse at center,#30291c 0%,#101010 65%)}
 .eyebrow{color:var(--gold);font:12px Arial,sans-serif;letter-spacing:3px;text-transform:uppercase}
@@ -39,15 +41,15 @@ footer{border-top:1px solid var(--line);padding:26px;text-align:center;color:#b6
 </style>
 </head>
 <body>
-<header><a class="logo" href="./">⌛ OLDORA</a><nav><a href="#collection">Explore</a><a href="auth.html">Sign in</a><a href="dashboard.html">Sell</a></nav></header>
+<header><a class="logo" href="./">⌛ OLDORA</a><nav><a href="#collection" data-i18n="explore">Explore</a><a href="auth.html" data-i18n="signin">Sign in</a><a href="dashboard.html" data-i18n="sell">Sell</a><button type="button" id="languageToggle" class="lang-toggle" aria-label="Switch language">العربية</button></nav></header>
 <main>
 <section class="hero">
-<div class="eyebrow">A curated vintage marketplace</div>
-<p>Discover timeless treasures, extraordinary finds, and objects with a past. OLDORA celebrates authentic vintage pieces aged 20 years or more.</p>
-<div class="actions"><a class="btn primary" href="#collection">Explore Collection</a><a class="btn" href="auth.html">Start Selling</a></div>
+<div class="eyebrow" data-i18n="eyebrow">A curated vintage marketplace</div>
+<p data-i18n="hero">Discover timeless treasures, extraordinary finds, and objects with a past. OLDORA celebrates authentic vintage pieces aged 20 years or more.</p>
+<div class="actions"><a class="btn primary" href="#collection" data-i18n="exploreCollection">Explore Collection</a><a class="btn" href="auth.html" data-i18n="startSelling">Start Selling</a></div>
 </section>
 <section id="collection">
-<h2>Discover Vintage Treasures</h2>
+<h2 data-i18n="discover">Discover Vintage Treasures</h2>
 <div class="search-row"><input id="search" type="search" aria-label="Search listings" placeholder="Search vintage treasures..." autocomplete="off"><select id="category" aria-label="Filter by category"><option value="">All categories</option></select></div>
 <div id="categories" class="categories" aria-label="Popular categories"></div>
 <p id="count" class="meta" role="status">Loading published treasures...</p>
@@ -55,10 +57,25 @@ footer{border-top:1px solid var(--line);padding:26px;text-align:center;color:#b6
 <div id="empty" class="message" hidden></div>
 </section>
 </main>
-<footer>OLDORA © 2026 · Free listings · 2% commission on completed sales</footer>
+<footer data-i18n="footer">OLDORA © 2026 · Free listings · 2% commission on completed sales</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const categories=['Classic Cars','Classic Motorcycles','Antiques & Collectibles','Vintage Watches & Clocks','Vintage Electronics','Cameras & Photography','Furniture & Home Décor','Coins & Banknotes','Stamps & Postcards','Books & Magazines','Art & Paintings','Jewelry & Accessories','Fashion & Clothing','Toys & Games','Automotive Parts','Historical Memorabilia','Traditional & Heritage Items','Other Vintage Items'];
+const translations={
+en:{explore:'Explore',signin:'Sign in',sell:'Sell',eyebrow:'A curated vintage marketplace',hero:'Discover timeless treasures, extraordinary finds, and objects with a past. OLDORA celebrates authentic vintage pieces aged 20 years or more.',exploreCollection:'Explore Collection',startSelling:'Start Selling',discover:'Discover Vintage Treasures',footer:'OLDORA © 2026 · Free listings · 2% commission on completed sales',search:'Search vintage treasures...',all:'All categories',allChip:'All',showing:'Showing',published:'published',item:'item',items:'items',noMatch:'No items match your search. Try another category or keyword.',noItems:'Our collection is being curated. Check back soon for published vintage treasures.',failed:'Published listings could not be loaded right now. Please try again later.',photo:'Photo coming soon',view:'View Details'},
+ar:{explore:'تصفح',signin:'تسجيل الدخول',sell:'البيع',eyebrow:'سوق مختار للمقتنيات القديمة',hero:'اكتشف مقتنيات فريدة تحمل عبق الماضي. OLDORA سوق للقطع القديمة الأصيلة التي يبلغ عمرها ٢٠ عامًا فأكثر.',exploreCollection:'استكشف المقتنيات',startSelling:'ابدأ البيع',discover:'اكتشف المقتنيات القديمة',footer:'OLDORA © ٢٠٢٦ · الإدراج مجاني · عمولة ٢٪ بعد إتمام البيع',search:'ابحث عن مقتنيات قديمة...',all:'جميع الفئات',allChip:'الكل',showing:'عرض',published:'منشور',item:'منتج',items:'منتجات',noMatch:'لا توجد منتجات مطابقة. جرّب فئة أو كلمة أخرى.',noItems:'نعمل على تجهيز مجموعتنا. عد قريبًا لاكتشاف المقتنيات.',failed:'تعذر تحميل الإعلانات المنشورة. حاول لاحقًا.',photo:'الصورة قريبًا',view:'عرض التفاصيل'}};
+let currentLang='en';
+function applyLanguage(lang){
+ currentLang=lang==='ar'?'ar':'en';
+ document.documentElement.lang=currentLang;document.documentElement.dir=currentLang==='ar'?'rtl':'ltr';
+ document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(translations[currentLang][key])el.textContent=translations[currentLang][key]});
+ document.getElementById('languageToggle').textContent=currentLang==='ar'?'English':'العربية';
+ document.getElementById('search').placeholder=translations[currentLang].search;
+ document.getElementById('category').options[0].textContent=translations[currentLang].all;
+ const allChip=document.querySelector('#categories button[data-value=""]');if(allChip)allChip.textContent=translations[currentLang].allChip;
+ render();
+}
+document.getElementById('languageToggle').addEventListener('click',()=>applyLanguage(currentLang==='en'?'ar':'en'));
 const select=document.getElementById('category'),chips=document.getElementById('categories'),grid=document.getElementById('products'),empty=document.getElementById('empty'),count=document.getElementById('count'),search=document.getElementById('search');
 categories.forEach(c=>select.add(new Option(c,c)));
 ['All',...categories.slice(0,7)].forEach(c=>{const b=document.createElement('button');b.type='button';b.className='category';b.textContent=c;b.dataset.value=c==='All'?'':c;b.addEventListener('click',()=>{select.value=b.dataset.value;render()});chips.append(b)});
@@ -68,11 +85,11 @@ const q=search.value.trim().toLocaleLowerCase(),cat=select.value;
 chips.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.value===cat)));
 const shown=listings.filter(x=>(!cat||x.category===cat)&&(!q||(x.title||'').toLocaleLowerCase().includes(q)||(x.description||'').toLocaleLowerCase().includes(q)));
 grid.replaceChildren();empty.hidden=true;
-count.textContent='Showing '+shown.length+' published '+(shown.length===1?'item':'items');
-if(!shown.length){empty.hidden=false;empty.textContent=loadFailed?'Published listings could not be loaded right now. Please try again later.':listings.length?'No items match your search. Try another category or keyword.':'Our collection is being curated. Check back soon for published vintage treasures.';return}
+count.textContent=translations[currentLang].showing+' '+shown.length+' '+translations[currentLang].published+' '+(shown.length===1?translations[currentLang].item:translations[currentLang].items);
+if(!shown.length){empty.hidden=false;empty.textContent=loadFailed?translations[currentLang].failed:listings.length?translations[currentLang].noMatch:translations[currentLang].noItems;return}
 shown.forEach(item=>{
 const card=document.createElement('article');card.className='product';
-const photo=document.createElement('div');photo.className='photo-placeholder';photo.textContent='Photo coming soon';
+const photo=document.createElement('div');photo.className='photo-placeholder';photo.textContent=translations[currentLang].photo;
 if(item.image_path&&typeof item.image_path==='string'&&!item.image_path.includes('..')){
  // Publicly approved images must come from the separate public bucket, never the private pending bucket.
  const url=client.storage.from('approved-product-media').getPublicUrl(item.image_path).data.publicUrl;
@@ -81,7 +98,7 @@ if(item.image_path&&typeof item.image_path==='string'&&!item.image_path.includes
 const h=document.createElement('h3');h.textContent=item.title||'Vintage item';
 const p=document.createElement('p');p.className='price';p.textContent='SAR '+Number(item.price||0).toFixed(2);
 const meta=document.createElement('p');meta.className='meta';meta.textContent=item.category||'Vintage collectible';
-card.append(h,p,meta);const link=document.createElement('a');link.className='btn';link.href='product.html?id='+encodeURIComponent(String(item.id));link.textContent='View Details';link.setAttribute('aria-label','View details for '+(item.title||'vintage item'));card.append(link);grid.append(card)
+card.append(h,p,meta);const link=document.createElement('a');link.className='btn';link.href='product.html?id='+encodeURIComponent(String(item.id));link.textContent=translations[currentLang].view;link.setAttribute('aria-label','View details for '+(item.title||'vintage item'));card.append(link);grid.append(card)
 });
 }
 search.addEventListener('input',render);select.addEventListener('change',render);
@@ -91,7 +108,7 @@ try{
 const {data,error}=await client.from('products').select('id,title,description,price,category,image_path').eq('status','published').eq('age_verified',true).order('created_at',{ascending:false}).limit(100);
 if(error)throw error;listings=data||[];
 }catch(e){loadFailed=true;console.error('Unable to load public listings',e)}
-render()
+applyLanguage('en')
 })();
 </script>
 </body>
