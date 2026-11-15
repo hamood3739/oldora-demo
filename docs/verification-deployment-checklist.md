@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-1. In Supabase SQL Editor, review and apply `supabase/migrations/20261115_oldora_automated_verification_queue.sql`, followed by `supabase/migrations/20261116_oldora_verification_claim.sql`. This creates the queue, private audit table and read-only seller policies. It does **not** modify existing product records.
+1. In Supabase SQL Editor, review and apply `supabase/migrations/20261115_oldora_automated_verification_queue.sql`, followed by `supabase/migrations/20261116_oldora_verification_claim.sql`, then `supabase/migrations/20261116_oldora_verification_recovery.sql`. This creates the queue, private audit table and read-only seller policies. It does **not** modify existing product records.
 2. Confirm the existing seller publication guard is active, and verify RLS and column permissions on `products`. Do not infer protection merely from the presence of a migration file.
 3. Deploy `supabase/functions/oldora-verification-worker/index.ts` as the Edge Function named `oldora-verification-worker`. Since it authenticates a custom worker secret rather than a user JWT, the gateway must be configured to allow invocation without JWT verification **only for this function**; the function itself rejects requests without the exact `OLDORA_WORKER_SECRET`. Never remove the function's own authorization check.
 4. Configure a high-entropy `OLDORA_WORKER_SECRET` in Supabase Edge Function secrets and use the built-in server-side `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. Never expose these in client HTML, browser JavaScript or public CI logs.
@@ -28,7 +28,7 @@
 
 - No independent age/authenticity evidence engine is implemented.
 - No trusted publishing transition or public media copy workflow is implemented.
-- Queue does not currently retry failed jobs automatically.
+- Abandoned `checking` jobs older than 30 minutes are requeued up to 3 attempts. Explicit `failed` jobs are not retried automatically. Test recovery and the maximum-attempt behavior before production use.
 - Event logging and state updates are separate operations, not an atomic transaction.
 - Current file existence check uses Storage list, which must be tested with actual bucket configuration.
 - The worker has not been deployed or run. **Do not enable automated publishing based on this code alone.**
