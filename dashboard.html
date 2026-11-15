@@ -159,6 +159,9 @@ visibility: hidden;
         <option value="sold">Sold</option>
         <option value="withdrawn">Withdrawn</option>
       </select>
+      <button type="button" class="button" id="checkAllPendingButton">Check All Pending Listings</button>
+      <p class="muted" style="font-size:13px">Automated readiness checks only. Passing does not verify authenticity or publish an item.</p>
+      <div id="bulkReadinessResults" role="status" aria-live="polite" style="text-align:left"></div>
       <p id="listingsStatus" class="muted" role="status">Loading your listings...</p>
       <div id="myListings"></div>
       <p class="muted">
@@ -333,6 +336,54 @@ function filterMyListings() {
 }
 document.getElementById('listingSearch').addEventListener('input', filterMyListings);
 document.getElementById('listingFilter').addEventListener('change', filterMyListings);
+
+document.getElementById('checkAllPendingButton').addEventListener('click', async () => {
+  const button = document.getElementById('checkAllPendingButton');
+  const output = document.getElementById('bulkReadinessResults');
+  button.disabled = true;
+  output.replaceChildren();
+  const notice = document.createElement('p');
+  notice.textContent = 'Checking pending listings...';
+  output.appendChild(notice);
+  try {
+    const { data: auth, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !auth.user) throw new Error('Sign in first.');
+    const { data: items, error } = await supabaseClient.from('products')
+      .select('id,title').eq('seller_id', auth.user.id).eq('status','pending')
+      .order('created_at', {ascending:false}).limit(100);
+    if (error) throw error;
+    if (!items || items.length === 0) {
+      notice.textContent = 'No pending listings to check.';
+      return;
+    }
+    let ready = 0;
+    for (const item of items) {
+      const row = document.createElement('div');
+      row.style.cssText = 'border:1px solid #59492f;border-radius:8px;padding:10px;margin:9px 0';
+      const {data: checks,error: checkError} = await supabaseClient.rpc('oldora_listing_readiness',{p_product_id:item.id});
+      const title = document.createElement('strong');
+      title.textContent = (item.title || 'Untitled item') + ' (#' + item.id + ')';
+      row.appendChild(title);
+      const info = document.createElement('p');
+      if (checkError) info.textContent = 'Check unavailable: ' + checkError.message;
+      else {
+        const tests = Array.isArray(checks) ? checks : [];
+        const failures = tests.filter(test => test.passed !== true);
+        if (tests.length && failures.length === 0) ready++;
+        info.textContent = !tests.length ? 'No checks returned; not verified.'
+          : failures.length ? failures.map(test => test.check_name + ': Needs attention').join(' | ')
+          : 'All readiness checks passed (not age authenticated or published).';
+      }
+      row.appendChild(info);
+      output.appendChild(row);
+    }
+    notice.textContent = ready + ' of ' + items.length + ' pending listings passed basic readiness checks. No listings were published.';
+  } catch (error) {
+    notice.textContent = 'Unable to check pending listings: ' + (error.message || 'Please try again.');
+  } finally {
+    button.disabled = false;
+  }
+});
 
 async function loadCommissionHistory(userId) {
   const status = document.getElementById('commissionHistoryStatus');
