@@ -63,13 +63,14 @@ function apply(next){
  translateNode(document.body);
 }
 function setup(){
- if(!document.getElementById('oldoraLanguageSwitch')){
-  const b=document.createElement('button');b.id='oldoraLanguageSwitch';b.type='button';
+ let b=document.getElementById('oldoraLanguageSwitch');
+ if(!b){
+  b=document.createElement('button');b.id='oldoraLanguageSwitch';b.type='button';
   b.setAttribute('aria-label','Switch language');
   b.style.cssText='position:fixed;bottom:18px;right:16px;z-index:10000;background:#171511;color:#c4a46a;border:1px solid #c4a46a;border-radius:9px;padding:11px 15px;font:15px Arial,sans-serif;box-shadow:0 2px 15px #0009;cursor:pointer';
-  b.addEventListener('click',()=>apply(lang==='ar'?'en':'ar'));
   document.body.append(b);
  }
+ b.addEventListener('click',()=>apply(lang==='ar'?'en':'ar'));
  const css=document.createElement('style');css.textContent='html[dir="rtl"] body{font-family:Tahoma,Arial,sans-serif}html[dir="rtl"] .card,html[dir="rtl"] .panel,html[dir="rtl"] .thread{text-align:right}html[dir="rtl"] input[type="email"],html[dir="rtl"] input[type="password"]{direction:ltr;text-align:left}html[dir="rtl"] .listing-actions{direction:rtl}html[dir="rtl"] #oldoraLanguageSwitch{right:auto;left:16px}';document.head.append(css);
  apply(lang);
  let queued=false;
