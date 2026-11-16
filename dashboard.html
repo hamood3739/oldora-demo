@@ -991,6 +991,7 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
       throw error;
     }
     message.textContent = 'Item submitted. It will remain pending until reviewed and age verified.';
+    window.OLDORASound?.play('listings');
     event.target.reset();
     mainPhotoSelect.replaceChildren(new Option('Choose photos first', ''));
     mainPhotoSelect.disabled = true;
@@ -1019,5 +1020,5 @@ document.getElementById('commissionSalePrice').addEventListener('input', (event)
 
 </script>
 
-<script defer src="oldora-i18n.js?v=20261115"></script></body>
+<script defer src="oldora-sounds.js?v=1"></script><script defer src="oldora-i18n.js?v=20261115"></script></body>
 </html>
