@@ -37,7 +37,7 @@ Deno.serve(async (request) => {
       }
       const allowedCategories = new Set([
         'Classic Cars','Classic Motorcycles','Antiques & Collectibles',
-        'Vintage Watches & Clocks','Vintage Electronics','Cameras & Photography',
+        'Vintage Watches & Clocks','Vintage Clocks','Vintage Electronics','Cameras & Photography',
         'Furniture & Home Décor','Coins & Banknotes','Stamps & Postcards',
         'Books & Magazines','Art & Paintings','Jewelry & Accessories',
         'Fashion & Clothing','Toys & Games','Automotive Parts',
@@ -57,7 +57,7 @@ Deno.serve(async (request) => {
         && typeof product.country_of_origin === 'string' && product.country_of_origin.trim() && typeof product.materials === 'string' && product.materials.trim()
         && typeof product.restoration_repairs === 'string' && product.restoration_repairs.trim());
       const paths: unknown[] = Array.isArray(product.image_urls) ? product.image_urls : [];
-      const validPaths = paths.length >= 5 && paths.length <= 10 && paths.includes(product.image_path)
+      const validPaths = paths.length >= 1 && paths.length <= 10 && paths.includes(product.image_path)
         && paths.every((p) => typeof p === 'string'
           && p.startsWith(product.seller_id + '/') && !p.includes('..') && !p.includes('://')
           && /^[a-zA-Z0-9/_-]+\.(jpg|jpeg|png|webp)$/i.test(p));
