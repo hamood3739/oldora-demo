@@ -42,7 +42,7 @@ footer{border-top:1px solid var(--line);padding:26px;text-align:center;color:#b6
 </style>
 </head>
 <body>
-<header><a class="logo" href="./">⌛ OLDORA</a><nav><a href="#collection" data-i18n="explore">Explore</a><a href="auth.html" data-i18n="signin">Sign in</a><a href="dashboard.html" data-i18n="sell">Sell</a><button type="button" id="languageToggle" class="lang-toggle" aria-label="Switch language">العربية</button></nav></header>
+<header><a class="logo" href="./">⌛ OLDORA</a><nav><a href="#collection" data-i18n="explore">Explore</a><a id="accountLink" href="auth.html" data-i18n="signin">Sign in</a><a href="dashboard.html" data-i18n="sell">Sell</a><button type="button" id="languageToggle" class="lang-toggle" aria-label="Switch language">العربية</button></nav></header>
 <main>
 <section class="hero">
 <div class="eyebrow" data-i18n="eyebrow">A curated vintage marketplace</div>
@@ -66,8 +66,8 @@ const categoryArabic={
 'Classic Cars':'السيارات الكلاسيكية','Classic Motorcycles':'الدراجات النارية الكلاسيكية','Antiques & Collectibles':'التحف والمقتنيات','Vintage Watches & Clocks':'الساعات القديمة','Vintage Clocks':'الساعات القديمة','Vintage Electronics':'الإلكترونيات القديمة','Cameras & Photography':'الكاميرات والتصوير','Furniture & Home Décor':'الأثاث والديكور المنزلي','Coins & Banknotes':'العملات المعدنية والورقية','Stamps & Postcards':'الطوابع والبطاقات البريدية','Books & Magazines':'الكتب والمجلات','Art & Paintings':'الفنون واللوحات','Jewelry & Accessories':'المجوهرات والإكسسوارات','Fashion & Clothing':'الأزياء والملابس','Toys & Games':'الألعاب','Automotive Parts':'قطع غيار السيارات القديمة','Historical Memorabilia':'التذكارات التاريخية','Traditional & Heritage Items':'المقتنيات التراثية والتقليدية','Other Vintage Items':'مقتنيات قديمة أخرى'};
 function categoryLabel(value){return currentLang==='ar'?(categoryArabic[value]||value):value;}
 const translations={
-en:{explore:'Explore',signin:'Sign in',sell:'Sell',eyebrow:'A curated vintage marketplace',hero:'Discover timeless treasures, extraordinary finds, and objects with a past. OLDORA celebrates authentic vintage pieces aged 20 years or more.',exploreCollection:'Explore Collection',startSelling:'Start Selling',discover:'Discover Vintage Treasures',footer:'OLDORA © 2026 · Free listings · 2% commission on completed sales',search:'Search vintage treasures...',all:'All categories',allChip:'All',showing:'Showing',published:'published',item:'item',items:'items',noMatch:'No items match your search. Try another category or keyword.',noItems:'Our collection is being curated. Check back soon for published vintage treasures.',failed:'Published listings could not be loaded right now. Please try again later.',photo:'Photo coming soon',view:'View Details',verifiedAge:'Verified Age',notFullyVerified:'Age Not Fully Verified'},
-ar:{explore:'تصفح',signin:'تسجيل الدخول',sell:'البيع',eyebrow:'سوق مختار للمقتنيات القديمة',hero:'اكتشف مقتنيات فريدة تحمل عبق الماضي. OLDORA سوق للقطع القديمة الأصيلة التي يبلغ عمرها ٢٠ عامًا فأكثر.',exploreCollection:'استكشف المقتنيات',startSelling:'ابدأ البيع',discover:'اكتشف المقتنيات القديمة',footer:'OLDORA © ٢٠٢٦ · الإدراج مجاني · عمولة ٢٪ بعد إتمام البيع',search:'ابحث عن مقتنيات قديمة...',all:'جميع الفئات',allChip:'الكل',showing:'عرض',published:'منشور',item:'منتج',items:'منتجات',noMatch:'لا توجد منتجات مطابقة. جرّب فئة أو كلمة أخرى.',noItems:'نعمل على تجهيز مجموعتنا. عد قريبًا لاكتشاف المقتنيات.',failed:'تعذر تحميل الإعلانات المنشورة. حاول لاحقًا.',photo:'الصورة قريبًا',view:'عرض التفاصيل',verifiedAge:'العمر موثّق',notFullyVerified:'العمر غير موثّق بالكامل'}};
+en:{explore:'Explore',signin:'Sign in',account:'My Account',sell:'Sell',eyebrow:'A curated vintage marketplace',hero:'Discover timeless treasures, extraordinary finds, and objects with a past. OLDORA celebrates authentic vintage pieces aged 20 years or more.',exploreCollection:'Explore Collection',startSelling:'Start Selling',discover:'Discover Vintage Treasures',footer:'OLDORA © 2026 · Free listings · 2% commission on completed sales',search:'Search vintage treasures...',all:'All categories',allChip:'All',showing:'Showing',published:'published',item:'item',items:'items',noMatch:'No items match your search. Try another category or keyword.',noItems:'Our collection is being curated. Check back soon for published vintage treasures.',failed:'Published listings could not be loaded right now. Please try again later.',photo:'Photo coming soon',view:'View Details',verifiedAge:'Verified Age',notFullyVerified:'Age Not Fully Verified'},
+ar:{explore:'تصفح',signin:'تسجيل الدخول',account:'حسابي',sell:'البيع',eyebrow:'سوق مختار للمقتنيات القديمة',hero:'اكتشف مقتنيات فريدة تحمل عبق الماضي. OLDORA سوق للقطع القديمة الأصيلة التي يبلغ عمرها ٢٠ عامًا فأكثر.',exploreCollection:'استكشف المقتنيات',startSelling:'ابدأ البيع',discover:'اكتشف المقتنيات القديمة',footer:'OLDORA © ٢٠٢٦ · الإدراج مجاني · عمولة ٢٪ بعد إتمام البيع',search:'ابحث عن مقتنيات قديمة...',all:'جميع الفئات',allChip:'الكل',showing:'عرض',published:'منشور',item:'منتج',items:'منتجات',noMatch:'لا توجد منتجات مطابقة. جرّب فئة أو كلمة أخرى.',noItems:'نعمل على تجهيز مجموعتنا. عد قريبًا لاكتشاف المقتنيات.',failed:'تعذر تحميل الإعلانات المنشورة. حاول لاحقًا.',photo:'الصورة قريبًا',view:'عرض التفاصيل',verifiedAge:'العمر موثّق',notFullyVerified:'العمر غير موثّق بالكامل'}};
 let currentLang='en';
 function applyLanguage(lang){
  currentLang=lang==='ar'?'ar':'en';
@@ -75,6 +75,7 @@ function applyLanguage(lang){
  document.documentElement.lang=currentLang;document.documentElement.dir=currentLang==='ar'?'rtl':'ltr';
  document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(translations[currentLang][key])el.textContent=translations[currentLang][key]});
  document.getElementById('languageToggle').textContent=currentLang==='ar'?'English':'العربية';
+ updateAccountLink();
  document.getElementById('search').placeholder=translations[currentLang].search;
  document.getElementById('category').options[0].textContent=translations[currentLang].all;
  Array.from(document.getElementById('category').options).forEach(option=>{
@@ -112,7 +113,10 @@ const badge=document.createElement('p');badge.className='verification'+(item.age
 });
 }
 search.addEventListener('input',render);select.addEventListener('change',render);
-const client=window.supabase?.createClient('https://hakjlkltjwvatzgasvos.supabase.co','sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb');
+const client=window.supabase?.createClient('https://hakjlkltjwvatzgasvos.supabase.co','sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+let hasSession=false;
+function updateAccountLink(){const link=document.getElementById('accountLink');if(!link)return;link.textContent=translations[currentLang][hasSession?'account':'signin'];link.href=hasSession?'dashboard.html':'auth.html';}
+if(client){client.auth.getSession().then(({data,error})=>{hasSession=!error&&!!data?.session?.user;updateAccountLink()}).catch(()=>{});client.auth.onAuthStateChange((_event,session)=>{hasSession=!!session;updateAccountLink()});}
 (async()=>{if(!client){loadFailed=true;applyLanguage(localStorage.getItem('oldora_language')==='ar'?'ar':'en');return}
 try{
 const {data,error}=await client.from('products').select('id,title,description,price,category,image_path,age_verified').eq('status','approved').order('created_at',{ascending:false}).limit(100);
