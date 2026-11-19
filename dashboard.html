@@ -299,7 +299,8 @@ const supabaseKey = 'sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb';
 
   const supabaseClient = window.supabase.createClient(
     supabaseUrl,
-    supabaseKey
+    supabaseKey,
+    { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
   );
   
 async function checkLogin() {
