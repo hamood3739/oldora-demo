@@ -92,6 +92,22 @@
         console.warn('Session check unavailable; login form remains accessible.');
       }
     })();
+    // Diagnose browser storage without exposing credentials or session tokens.
+    function sessionStorageCheck() {
+      try {
+        const key = 'oldora_storage_test';
+        localStorage.setItem(key, 'ok');
+        const works = localStorage.getItem(key) === 'ok';
+        localStorage.removeItem(key);
+        return works;
+      } catch (_) { return false; }
+    }
+    const storageAvailable = sessionStorageCheck();
+    if (!storageAvailable) {
+      message.textContent = authLanguage === 'ar'
+        ? 'Safari يمنع تخزين جلسة الدخول. افتح الموقع في تبويب Safari عادي (ليس خاصًا)، وتأكد من السماح ببيانات المواقع.'
+        : 'Safari cannot save this login session. Open OLDORA in a regular Safari tab (not Private Browsing) and allow website data.';
+    }
     function toggleMode() {
       signUpMode = !signUpMode;
       heading.textContent = authLabel(signUpMode ? 'create' : 'welcome');
@@ -126,7 +142,14 @@
         } else if (signUpMode) {
           message.textContent = authLabel('created');
         } else {
-          window.location.replace(safeNext);
+          const { data: persisted, error: sessionCheckError } = await supabaseClient.auth.getSession();
+          if (sessionCheckError || !persisted?.session?.user || !storageAvailable) {
+            message.textContent = authLanguage === 'ar'
+              ? 'تم قبول بيانات الحساب، لكن Safari لم يتمكن من الاحتفاظ بجلسة الدخول. افتح OLDORA في تبويب عادي وتحقق من إعدادات بيانات المواقع.'
+              : 'Credentials accepted, but Safari could not retain the login session. Use a regular Safari tab and check website-data settings.';
+          } else {
+            window.location.replace(safeNext);
+          }
         }
       } catch (error) {
         message.textContent = error.message || authLabel('connection');
