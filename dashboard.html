@@ -172,7 +172,7 @@ visibility: hidden;
 
     <section class="card" id="editListingCard" hidden>
       <h3>Edit Pending Listing</h3>
-      <p class="muted">Keep at least one photo while your listing is pending review; additional photos are optional. Changes are saved only when you press Save Changes.</p><p class="muted"><strong>Photo review:</strong> Upload photographs of the actual item named in this listing. Landscape, stock, unrelated, or misleading images cannot be approved. The readiness check only validates technical details, not photo authenticity.</p>
+      <p class="muted">Keep 1–10 photos while your listing is pending review. Changes are saved only when you press Save Changes.</p><p class="muted"><strong>Photo review:</strong> Upload photographs of the actual item named in this listing. Landscape, stock, unrelated, or misleading images cannot be approved. The readiness check only validates technical details, not photo authenticity.</p>
       <form id="editListingForm">
         <input type="hidden" id="editListingId">
         <label for="editTitle">Item title</label>
@@ -203,7 +203,7 @@ visibility: hidden;
         <p class="muted" id="readinessResult" role="status" aria-live="polite"></p>
         <p class="muted"><strong>Before submitting:</strong> Upload at least one genuine photo of the item. The listing remains private until automated checks are complete. Seller-reported age alone does not establish verified age; an approved listing may display an “Age Not Fully Verified” notice.</p><label for="itemPhotos">Product Photos (at least 1 image)</label>
         <input id="itemPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
-        <p class="muted">Choose at least one clear photo of the actual item; additional photos are optional. 10 MB per photo.</p>
+        <p class="muted">Choose 1–10 clear photos of the actual item. 10 MB per photo.</p>
         <label for="mainPhoto">Main Photo (cover image)</label>
         <select id="mainPhoto" disabled required>
           <option value="">Choose photos first</option>
@@ -766,6 +766,10 @@ document.getElementById('editListingForm').addEventListener('submit', async (eve
     message.textContent = 'A listing must have at least one photo.';
     return;
   }
+  if (count > 10) {
+    message.textContent = 'A listing can have up to 10 photos.';
+    return;
+  }
   if (files.some(f => !['image/jpeg','image/png','image/webp'].includes(f.type) || f.size > 10 * 1024 * 1024 || !f.size)) {
     message.textContent = 'New photos must be JPG, PNG or WebP, up to 10 MB each.';
     return;
@@ -878,6 +882,7 @@ document.getElementById('checkListing').addEventListener('click', () => {
   if (!get('itemRepairs')) issues.push('Disclose restoration and repairs.');
   if (get('itemRepairs') === 'Restored or repaired' && !get('itemRepairsDetail')) issues.push('Describe the restoration or repairs.');
   if (photos.length < 1) issues.push('Select at least one photo.');
+  if (photos.length > 10) issues.push('Choose no more than 10 photos.');
   if (photos.some(f => !['image/jpeg','image/png','image/webp'].includes(f.type) || f.size > 10 * 1024 * 1024 || !f.size)) issues.push('Photos must be JPG, PNG or WebP, up to 10 MB each.');
   document.getElementById('readinessResult').textContent = issues.length
     ? 'Please check: ' + issues.join(' ')
@@ -925,8 +930,8 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
   }
   const photos = [...document.getElementById('itemPhotos').files];
   const video = document.getElementById('itemVideo').files[0];
-  if (photos.length < 1) {
-    message.textContent = 'Please select at least one photo.';
+  if (photos.length < 1 || photos.length > 10) {
+    message.textContent = 'Choose between 1 and 10 photos.';
     return;
   }
   const accepted = ['image/jpeg', 'image/png', 'image/webp'];
