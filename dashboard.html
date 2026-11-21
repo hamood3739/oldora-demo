@@ -117,7 +117,13 @@ visibility: hidden;
 html{min-height:100%;background:#080808}
 body{min-height:100vh;background-color:#080808!important;background-image:linear-gradient(180deg,rgba(0,0,0,.40),rgba(0,0,0,.77) 65%,#080808),url('assets/oldora-vintage-background.webp')!important;background-position:center top!important;background-repeat:no-repeat!important;background-size:100% auto!important;background-attachment:scroll!important}
 @media(max-width:650px){body{background-size:auto,auto 580px!important;background-position:center top,center 110px!important}}
-#oldoraLanguageSwitch{background:#17140f;color:#c4a46a;border:1px solid #c4a46a;border-radius:7px;padding:8px 11px;cursor:pointer;font:14px Arial,sans-serif}.oldora-wordmark{color:#c4a46a}</style>
+#oldoraLanguageSwitch{background:#17140f;color:#c4a46a;border:1px solid #c4a46a;border-radius:7px;padding:8px 11px;cursor:pointer;font:14px Arial,sans-serif}.oldora-wordmark{color:#c4a46a}
+/* OLDORA full-viewport artwork: stays visible while every page scrolls. */
+html{background:#080808!important}
+body{position:relative;isolation:isolate;min-height:100vh;background:#080808!important;background-image:none!important}
+body::before{content:"";position:fixed;z-index:-1;inset:0;pointer-events:none;background-image:linear-gradient(180deg,rgba(0,0,0,.40),rgba(0,0,0,.64)),url("assets/oldora-vintage-background.webp");background-position:center center;background-repeat:no-repeat;background-size:cover}
+@media(max-width:650px){body::before{background-position:44% center;background-size:cover}}
+</style>
 </head>
 <body>
   <header>
