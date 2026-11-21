@@ -58,6 +58,7 @@ function translateNode(node){
 function apply(next){
  lang=next==='ar'?'ar':'en';localStorage.setItem('oldora_language',lang);
  document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+ document.querySelectorAll('.oldora-wordmark').forEach(el=>{el.textContent=lang==='ar'?'أولدورا':'OLDORA';});
  const toggle=document.getElementById('oldoraLanguageSwitch');
  if(toggle)toggle.textContent=lang==='ar'?'English':'العربية';
  translateNode(document.body);
