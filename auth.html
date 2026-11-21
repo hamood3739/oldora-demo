@@ -135,7 +135,7 @@
           supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
         }
         const result = signUpMode
-          ? await supabaseClient.auth.signUp({ email, password })
+          ? await supabaseClient.auth.signUp({ email, password, options: { emailRedirectTo: new URL('auth.html', window.location.href).origin + '/oldora-demo/auth.html' } })
           : await supabaseClient.auth.signInWithPassword({ email, password });
         if (result.error) {
           message.textContent = result.error.message;
