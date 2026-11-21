@@ -137,6 +137,16 @@ main>.card,main .card{background:rgba(11,10,9,.91)!important;border-color:#74604
 main>h2{display:block;background:rgba(7,7,7,.77);border:1px solid rgba(196,164,106,.35);border-radius:10px;padding:13px 12px;margin:10px auto 22px;max-width:600px}
 main>.muted{background:rgba(0,0,0,.72);border-radius:8px;padding:9px 12px}
 @media(max-width:600px){header{min-height:205px!important;padding:20px 12px!important}main{padding:20px 12px 55px!important}.card{padding:18px!important}}
+
+/* Two horizontal shortcuts immediately below the logo; notification bell untouched. */
+.oldora-quick-actions{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 1px minmax(0,1fr);align-items:stretch;gap:10px;width:min(100% - 24px,650px);margin:15px auto 8px;padding:9px;border:1px solid rgba(196,164,106,.7);border-radius:13px;background:rgba(12,11,9,.91);box-shadow:0 7px 22px rgba(0,0,0,.4)}
+.oldora-quick-link{display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:50px;padding:9px 7px;border:0;border-radius:8px;background:transparent;color:#e1c18a;text-decoration:none;font:600 clamp(13px,3.7vw,17px)/1.4 Arial,sans-serif;cursor:pointer;white-space:normal;text-align:center}
+.oldora-quick-link:hover,.oldora-quick-link:focus-visible{background:rgba(196,164,106,.16);outline:1px solid rgba(196,164,106,.45)}
+.oldora-quick-divider{width:1px;align-self:stretch;background:linear-gradient(180deg,transparent,#d5ae6e 25%,#d5ae6e 75%,transparent);box-shadow:0 0 9px rgba(213,174,110,.25)}
+#oldoraInboxAlert{grid-column:1/-1;grid-row:2;margin:0;padding:8px;border-top:1px solid rgba(196,164,106,.35);background:rgba(38,32,22,.7);border-radius:6px;font:13px/1.4 Arial,sans-serif}
+#oldoraInboxAlert[hidden]{display:none!important}
+#oldoraInboxAlert a{color:#e4c990;text-decoration:underline}
+@media(max-width:390px){.oldora-quick-actions{gap:5px;padding:6px}.oldora-quick-link{font-size:12px;padding:7px 3px}}
 </style>
 </head>
 <body>
@@ -145,10 +155,10 @@ main>.muted{background:rgba(0,0,0,.72);border-radius:8px;padding:9px 12px}
     <h1 class="oldora-wordmark">OLDORA</h1><button id="oldoraLanguageSwitch" type="button" aria-label="Switch language">العربية</button>
   </header>
 
-  <div id="oldoraInboxAlert" role="status" aria-live="polite" hidden style="max-width:650px;margin:12px auto;padding:12px 16px;border:1px solid #c4a46a;border-radius:9px;background:#262016;color:#f5f0e6;font:15px Arial,sans-serif"><a id="oldoraInboxLink" href="messages.html?inbox=1" style="color:#c4a46a">💬 <span id="oldoraInboxLabel">رسائل جديدة · New messages</span></a></div><main><p><a href="settings.html" class="button" style="margin:0 0 14px">⚙️ إعدادات الحساب · Account Settings</a></p>
+  <nav class="oldora-quick-actions" aria-label="OLDORA account shortcuts"><div id="oldoraInboxAlert" role="status" aria-live="polite" hidden><a id="oldoraInboxLink" href="messages.html?inbox=1">💬 <span id="oldoraInboxLabel">رسائل جديدة · New messages</span></a></div><a id="oldoraPrivateMessagesShortcut" class="oldora-quick-link" href="messages.html?inbox=1"><span data-ar="الرسائل الخاصة" data-en="Private Messages">الرسائل الخاصة</span> <span aria-hidden="true">✉</span></a><span class="oldora-quick-divider" aria-hidden="true"></span><button type="button" class="oldora-quick-link" id="commissionCalculatorToggle" aria-expanded="false" aria-controls="commissionCalculator"><span data-ar="حاسبة العمولة ١٪" data-en="Commission 1%">حاسبة العمولة ١٪</span> <span aria-hidden="true">⌗</span></button></nav><main><p><a href="settings.html" class="button" style="margin:0 0 14px">⚙️ إعدادات الحساب · Account Settings</a></p>
     <h2>Seller Dashboard</h2>
     <div style="margin:14px auto 20px;max-width:460px">
-      <button type="button" class="button" id="commissionCalculatorToggle" aria-expanded="false" aria-controls="commissionCalculator">⌗ Commission 1% · Calculator</button>
+      
       <section id="commissionCalculator" class="card" hidden aria-label="Commission calculator" style="text-align:left">
         <h3>OLDORA Commission — 1%</h3>
         <p>Listings are free. Commission is due only after a successful sale.</p>
