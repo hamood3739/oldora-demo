@@ -1,4 +1,4 @@
-// OLDORA automated verification worker — staging only, NEVER publishes.
+// OLDORA automated verification worker — automated basic-check publishing; never claims independent age verification.
 // Deploy only after the SQL queue migration and configure OLDORA_WORKER_SECRET.
 // Invoke from a trusted scheduler with Authorization: Bearer <OLDORA_WORKER_SECRET>.
 // SUPABASE_SERVICE_ROLE_KEY must remain server-side. Never ship it to GitHub Pages.
@@ -25,6 +25,7 @@ Deno.serve(async (request) => {
   const { data: jobs, error: jobsError } = await db.rpc('oldora_claim_verification_jobs', { p_limit: 10 });
   if (jobsError) return new Response('Job claim unavailable', { status: 503 });
   let checked = 0;
+  let published = 0;
   for (const job of jobs || []) {
     try {
       const { data: product, error: productError } = await db.from('products')
@@ -37,7 +38,7 @@ Deno.serve(async (request) => {
       }
       const allowedCategories = new Set([
         'Classic Cars','Classic Motorcycles','Antiques & Collectibles',
-        'Vintage Watches & Clocks','Vintage Clocks','Vintage Electronics','Cameras & Photography',
+        'Vintage Watches & Clocks','Vintage Electronics','Cameras & Photography',
         'Furniture & Home Décor','Coins & Banknotes','Stamps & Postcards',
         'Books & Magazines','Art & Paintings','Jewelry & Accessories',
         'Fashion & Clothing','Toys & Games','Automotive Parts',
@@ -76,17 +77,44 @@ Deno.serve(async (request) => {
       const allBasicChecks = Object.values(checks).every(Boolean);
       // A claimed age and matching photos DO NOT independently authenticate the item's age.
       // Until a defensible independent evidence check is implemented, no item can be auto-published.
-      const state = allBasicChecks ? 'ready_for_evidence' : 'needs_info';
+      let state = 'needs_info';
+      if (allBasicChecks) {
+        // Make only inspected product photos public, never expose private bucket contents.
+        // A passing self-report is NOT independent verification: age_verified remains false.
+        const uploaded: string[] = [];
+        try {
+          for (const path of paths as string[]) {
+            const { data: blob, error: downloadError } = await db.storage.from('product-media').download(path);
+            if (downloadError || !blob) throw downloadError || Error('Private photo unavailable');
+            if (blob.size > 10 * 1024 * 1024) throw Error('Photo exceeds 10 MB');
+            const { error: uploadError } = await db.storage.from('approved-product-media').upload(path, blob, {
+              contentType: blob.type || 'image/jpeg', upsert: false
+            });
+            if (uploadError && !/already exists|duplicate/i.test(uploadError.message)) throw uploadError;
+            uploaded.push(path);
+          }
+          const { data: changed, error: publishError } = await db.from('products')
+            .update({ status: 'approved', age_verified: false })
+            .eq('id', job.product_id).eq('status', 'pending').eq('age_verified', false)
+            .select('id').maybeSingle();
+          if (publishError || !changed) throw publishError || Error('Listing changed during review');
+          state = 'published';
+        } catch (publishError) {
+          // Do not publish if copying fails; keep the listing private.
+          throw publishError;
+        }
+      }
       const { error: updateError } = await db.from('oldora_verification_jobs')
         .update({ state, checks, last_error: null, updated_at: new Date().toISOString() })
         .eq('product_id', job.product_id).eq('state', 'checking');
       if (updateError) throw updateError;
       const { error: eventError } = await db.from('oldora_verification_events').insert({
         product_id: job.product_id, event_type: 'automated_precheck',
-        details: { state, checks, publication: 'not_performed' }
+        details: { state, checks, publication: state === 'published' ? 'basic_checks_only_age_unverified' : 'not_performed' }
       });
       if (eventError) throw eventError;
       checked++;
+      if (state === 'published') published++;
     } catch (error) {
       await db.from('oldora_verification_jobs').update({
         state: 'failed', last_error: String(error).slice(0, 400),
@@ -94,5 +122,5 @@ Deno.serve(async (request) => {
       }).eq('product_id', job.product_id);
     }
   }
-  return Response.json({ checked, published: 0, mode: 'verification_precheck_only' });
+  return Response.json({ checked, published, mode: 'automated_basic_checks_unverified_age' });
 });
