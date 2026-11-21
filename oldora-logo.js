@@ -3,7 +3,7 @@
 const files={en:'assets/IMG_1991.png',ar:'assets/819971CF-FDB0-4A94-86FA-7DC50DC8A9CD.png'};
 function init(){
  const style=document.createElement('style');
- style.textContent='.oldora-official-logo{display:block;width:clamp(72px,17vw,130px);height:auto;object-fit:contain;border-radius:50%;clip-path:circle(48% at 50% 50%);background:transparent}.oldora-official-logo.large{width:clamp(130px,35vw,210px);margin:0 auto 12px}.oldora-logo-link{display:inline-flex;align-items:center;text-decoration:none}.oldora-logo-heading{display:none!important}header .oldora-official-logo{width:clamp(62px,12vw,96px)}';
+ style.textContent='.oldora-official-logo{display:block;width:clamp(72px,17vw,130px);height:auto;aspect-ratio:1/1;object-fit:cover;object-position:center center;border-radius:50%;clip-path:circle(47% at 50% 50%);background:transparent}.oldora-official-logo.large{width:clamp(130px,35vw,210px);height:clamp(130px,35vw,210px);margin:0 auto 12px}.oldora-logo-link{display:inline-flex;align-items:center;text-decoration:none}.oldora-logo-heading{display:none!important}header .oldora-official-logo{width:clamp(62px,12vw,96px);height:clamp(62px,12vw,96px)}';
  document.head.append(style);
  let target=null,large=false;
  if(document.querySelector('body>.logo')&&document.querySelector('body>h1')){target=document.querySelector('body>.logo');large=true;document.querySelector('body>h1').classList.add('oldora-logo-heading')}
