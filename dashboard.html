@@ -1044,8 +1044,9 @@ document.getElementById('commissionSalePrice').addEventListener('input', (event)
     const {data:messages,error:msgError}=await client.from('oldora_messages').select('id,sender_id,created_at').in('conversation_id',ids).neq('sender_id',uid).order('created_at',{ascending:false}).limit(1);
     if(msgError)return;
     const newest=messages?.[0];if(!newest)return;
-    if(!previous){alert.hidden=false;label.textContent='لديك رسائل من المشترين · Buyer messages available';previous=newest.id;try{localStorage.setItem(key,previous)}catch(_){};return}
-    if(newest.id!==previous){alert.hidden=false;label.textContent='رسالة جديدة من مشتري · New buyer message';window.OLDORASound?.play('messages');previous=newest.id;try{localStorage.setItem(key,previous)}catch(_){}}
+    alert.hidden=false;label.textContent='💬 لديك رسائل من المشترين · View buyer messages';
+    if(!previous){previous=newest.id;try{localStorage.setItem(key,previous)}catch(_){};return}
+    if(newest.id!==previous){alert.hidden=false;label.textContent='🔔 رسالة جديدة من مشتري · New buyer message';window.OLDORASound?.play('messages');previous=newest.id;try{localStorage.setItem(key,previous)}catch(_){}}
   }
   await check();setInterval(check,12000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});
 })().catch(()=>{});
