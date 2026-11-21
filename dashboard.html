@@ -123,9 +123,9 @@ visibility: hidden;
   <main>
     <h2>Seller Dashboard</h2>
     <div style="margin:14px auto 20px;max-width:460px">
-      <button type="button" class="button" id="commissionCalculatorToggle" aria-expanded="false" aria-controls="commissionCalculator">⌗ Commission 2% · Calculator</button>
+      <button type="button" class="button" id="commissionCalculatorToggle" aria-expanded="false" aria-controls="commissionCalculator">⌗ Commission 1% · Calculator</button>
       <section id="commissionCalculator" class="card" hidden aria-label="Commission calculator" style="text-align:left">
-        <h3>OLDORA Commission — 2%</h3>
+        <h3>OLDORA Commission — 1%</h3>
         <p>Listings are free. Commission is due only after a successful sale.</p>
         <label for="commissionSalePrice">Final sale price (SAR)</label>
         <input id="commissionSalePrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Enter sale price">
@@ -139,7 +139,7 @@ visibility: hidden;
 
     <section class="card" aria-labelledby="commissionHistoryHeading">
       <h3 id="commissionHistoryHeading">My Sales & Commissions</h3>
-      <p class="muted">Your completed sales and OLDORA's 2% commission. A due commission is not a payment confirmation.</p>
+      <p class="muted">Your completed sales and OLDORA's 1% commission. A due commission is not a payment confirmation.</p>
       <p id="commissionHistoryStatus" role="status">Loading commission history...</p>
       <div id="commissionHistory" style="display:grid;gap:12px"></div>
       <p id="commissionHistoryTotal" style="color:var(--gold);font-weight:bold"></p>
@@ -269,7 +269,7 @@ visibility: hidden;
         </select>
         <label for="itemRepairsDetail">Repair details (if applicable)</label>
         <textarea id="itemRepairsDetail" rows="2" placeholder="Describe restoration, replacements, or repairs"></textarea>
-        <div style="border:1px solid var(--gold);border-radius:10px;padding:14px;margin:16px 0"><strong>OLDORA — Commission Agreement</strong><p class="muted">A 2% commission on the final sale price is payable only after a successful sale.</p><label style="display:flex;gap:10px;align-items:flex-start"><input type="checkbox" id="commissionAgreement" required style="width:auto;margin-top:4px"><span>I understand and agree to pay OLDORA 2% of the final sale price after a successful sale.</span></label></div>
+        <div style="border:1px solid var(--gold);border-radius:10px;padding:14px;margin:16px 0"><strong>OLDORA — Commission Agreement</strong><p class="muted">A 1% commission on the final sale price is payable only after a successful sale.</p><label style="display:flex;gap:10px;align-items:flex-start"><input type="checkbox" id="commissionAgreement" required style="width:auto;margin-top:4px"><span>I understand and agree to pay OLDORA 1% of the final sale price after a successful sale.</span></label></div>
         <button type="submit" id="listingSubmit" class="button">Submit for Review</button>
         <p class="muted" id="listingMessage" role="status" aria-live="polite"></p>
       </form>
@@ -433,7 +433,7 @@ async function loadCommissionHistory(userId) {
     const detail = document.createElement('p');
     detail.style.margin = '7px 0';
     detail.textContent = row.was_sold
-      ? 'Sale: ' + money(row.final_sale_price) + ' | Commission (2%): ' + money(row.commission_amount)
+      ? 'Sale: ' + money(row.final_sale_price) + ' | Commission (1%): ' + money(row.commission_amount)
       : 'Not sold — no commission';
     const state = document.createElement('p');
     state.className = 'muted';
@@ -571,7 +571,7 @@ async function loadMyListings(userId) {
         const amount = Number(priceInput.value);
         const valid = priceInput.value.trim() !== '' && Number.isFinite(amount) && amount > 0 && Math.round(amount*100) === amount*100;
         calculation.textContent = choice.value === 'yes' && valid
-          ? 'OLDORA commission (2%): ' + (Math.round(amount * 2) / 100).toFixed(2) + ' SAR'
+          ? 'OLDORA commission (1%): ' + (Math.round(amount) / 100).toFixed(2) + ' SAR'
           : choice.value === 'no' ? 'No commission is due for an unsold item.' : '';
         confirm.disabled = !(choice.value === 'no' || (choice.value === 'yes' && valid));
       };
@@ -891,7 +891,7 @@ document.getElementById('checkListing').addEventListener('click', () => {
 document.getElementById('listingForm').addEventListener('submit', async (event) => {
   event.preventDefault();
   if (!document.getElementById('commissionAgreement').checked) {
-    document.getElementById('listingMessage').textContent = 'Please agree to the 2% commission before submitting.';
+    document.getElementById('listingMessage').textContent = 'Please agree to the 1% commission before submitting.';
     return;
   }
   const button = document.getElementById('listingSubmit');
@@ -1021,7 +1021,7 @@ document.getElementById('commissionSalePrice').addEventListener('input', (event)
   const amount = Number(raw);
   document.getElementById('commissionCalculatedAmount').textContent =
     raw !== '' && Number.isFinite(amount) && amount >= 0
-      ? (Math.round(amount * 2) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' SAR'
+      ? (Math.round(amount) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' SAR'
       : '—';
 });
 
