@@ -37,6 +37,19 @@ html{background:#080808!important}
 body{position:relative;isolation:isolate;min-height:100vh;background:#080808!important;background-image:none!important}
 body::before{content:"";position:fixed;z-index:-1;inset:0;pointer-events:none;background-image:linear-gradient(180deg,rgba(0,0,0,.40),rgba(0,0,0,.64)),url("assets/oldora-vintage-background.webp");background-position:center center;background-repeat:no-repeat;background-size:cover}
 @media(max-width:650px){body::before{background-position:44% center;background-size:cover}}
+
+/* Auth page visual polish: a single compact logo, readable form, no background text collision. */
+body{padding:22px 16px 44px!important;overflow-x:hidden}
+body::before{background-image:linear-gradient(180deg,rgba(0,0,0,.86),rgba(0,0,0,.83)),url("assets/oldora-vintage-background.webp")!important;background-position:center center!important}
+body>.logo{display:flex;justify-content:center;align-items:center;margin:0 auto 6px!important;min-height:0!important}
+body>.logo .oldora-official-logo{width:clamp(108px,30vw,148px)!important;height:clamp(108px,30vw,148px)!important;aspect-ratio:1/1;object-fit:cover!important;object-position:center!important;border-radius:50%!important;margin:0 auto!important;display:block!important}
+body>h1.oldora-logo-heading{display:none!important}
+#languageSwitch{display:block!important;width:auto!important;margin:8px auto 22px!important;padding:9px 18px!important;font-size:15px!important}
+.panel{position:relative;max-width:430px;margin:12px auto 22px!important;padding:24px 20px!important;background:rgba(9,9,9,.91)!important;border:1px solid #766044!important;box-shadow:0 14px 36px rgba(0,0,0,.45);border-radius:14px!important}
+.panel h2{margin:4px 0 22px!important;font-size:clamp(24px,6vw,30px)!important}
+.panel label{margin:14px 0 7px!important}
+.panel input{background:#202020!important}
+@media(max-width:420px){.panel{padding:21px 17px!important}.panel h2{font-size:25px!important}}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
