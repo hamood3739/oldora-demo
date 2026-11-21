@@ -6,7 +6,7 @@ async function list(){const {data,error}=await db.from('oldora_conversations').s
 async function showProduct(id){
  const preview=document.getElementById('productPreview'),photo=document.getElementById('productPhoto');
  preview.hidden=true;photo.hidden=true;photo.removeAttribute('src');
- const {data,error}=await db.from('products').select('id,title,price,image_path').eq('id',id).eq('status','published').eq('age_verified',true).maybeSingle();
+ const {data,error}=await db.from('products').select('id,title,price,image_path').eq('id',id).eq('status','approved').maybeSingle();
  if(error||!data){document.getElementById('productName').textContent='Item #'+id;document.getElementById('productPrice').textContent='';preview.hidden=false;return;}
  document.getElementById('productName').textContent=data.title||'Item #'+id;
  document.getElementById('productPrice').textContent='SAR '+Number(data.price||0).toFixed(2);
