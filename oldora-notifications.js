@@ -15,12 +15,12 @@ const {data:convs,error}=await db.from('oldora_conversations').select('id,produc
 const ids=(convs||[]).map(c=>c.id);if(!ids.length){countEl.hidden=true;return}
 const {data:rows,error:err}=await db.from('oldora_messages').select('id,conversation_id,sender_id,created_at').in('conversation_id',ids).neq('sender_id',uid).order('created_at',{ascending:false}).limit(100);if(err)return;
 const incoming=rows||[];latest=incoming[0]?.id||'';const seen=store('oldora-notify-seen:'+uid);
-if(!initialized){initialized=true;lastNotified=latest;if(!seen&&latest)save('oldora-notify-seen:'+uid,latest)}
+if(!initialized){initialized=true;lastNotified=latest;if(!seen&&latest){save('oldora-notify-seen:'+uid,latest)}}
 const unread=seen?incoming.findIndex(m=>String(m.id)===seen):-1;
 const count=seen?(unread<0?incoming.length:unread):0;
 countEl.hidden=count===0;countEl.textContent=count>99?'99+':String(count);
 label.textContent=count?('🔔 '+count+' رسائل جديدة · New messages'):('الرسائل · Messages');
-if(count){const conversation=convs.find(c=>c.id===incoming[0].conversation_id);link.href='messages.html?listing='+encodeURIComponent(conversation?.product_id||'')+'&inbox=1';}
+if(count){const conversation=convs.find(c=>c.id===incoming[0].conversation_id);link.href='messages.html?inbox=1&listing='+encodeURIComponent(conversation?.product_id||'');}else{link.href='messages.html?inbox=1'}
 if(initialized&&latest&&lastNotified&&latest!==lastNotified){lastNotified=latest;/* Visual notification; audio handled only by active chat to avoid duplicate tones. */}
 }catch(e){console.warn('OLDORA notifications unavailable',e)}finally{busy=false}}
 check();setInterval(check,6000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});window.addEventListener('pageshow',check);
