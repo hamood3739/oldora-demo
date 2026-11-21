@@ -26,6 +26,7 @@ Deno.serve(async (request) => {
   if (jobsError) return new Response('Job claim unavailable', { status: 503 });
   let checked = 0;
   let published = 0;
+  const failures: Array<{product_id:number,error:string}> = [];
   for (const job of jobs || []) {
     try {
       const { data: product, error: productError } = await db.from('products')
@@ -33,12 +34,12 @@ Deno.serve(async (request) => {
         .eq('id', job.product_id).single();
       if (productError || !product) throw Error('Product unavailable');
       if (product.status !== 'pending' || product.age_verified !== false) {
-        await db.from('oldora_verification_jobs').update({ state: 'failed', last_error: 'Listing is no longer pending', updated_at: new Date().toISOString() }).eq('product_id', job.product_id);
+        await db.from('oldora_verification_jobs').update({ state: product.status === 'approved' ? 'published' : 'failed', last_error: product.status === 'approved' ? null : 'Listing is no longer pending', updated_at: new Date().toISOString() }).eq('product_id', job.product_id);
         continue;
       }
       const allowedCategories = new Set([
         'Classic Cars','Classic Motorcycles','Antiques & Collectibles',
-        'Vintage Watches & Clocks','Vintage Electronics','Cameras & Photography',
+        'Vintage Watches & Clocks','Vintage Clocks','Vintage Electronics','Cameras & Photography',
         'Furniture & Home Décor','Coins & Banknotes','Stamps & Postcards',
         'Books & Magazines','Art & Paintings','Jewelry & Accessories',
         'Fashion & Clothing','Toys & Games','Automotive Parts',
@@ -81,8 +82,7 @@ Deno.serve(async (request) => {
       if (allBasicChecks) {
         // Make only inspected product photos public, never expose private bucket contents.
         // A passing self-report is NOT independent verification: age_verified remains false.
-        const uploaded: string[] = [];
-        try {
+                try {
           for (const path of paths as string[]) {
             const { data: blob, error: downloadError } = await db.storage.from('product-media').download(path);
             if (downloadError || !blob) throw downloadError || Error('Private photo unavailable');
@@ -91,7 +91,6 @@ Deno.serve(async (request) => {
               contentType: blob.type || 'image/jpeg', upsert: false
             });
             if (uploadError && !/already exists|duplicate/i.test(uploadError.message)) throw uploadError;
-            uploaded.push(path);
           }
           const { data: changed, error: publishError } = await db.from('products')
             .update({ status: 'approved', age_verified: false })
@@ -116,11 +115,12 @@ Deno.serve(async (request) => {
       checked++;
       if (state === 'published') published++;
     } catch (error) {
+      failures.push({product_id: Number(job.product_id), error: JSON.stringify(error, Object.getOwnPropertyNames(error)).slice(0,400)});
       await db.from('oldora_verification_jobs').update({
         state: 'failed', last_error: String(error).slice(0, 400),
         updated_at: new Date().toISOString()
       }).eq('product_id', job.product_id);
     }
   }
-  return Response.json({ checked, published, mode: 'automated_basic_checks_unverified_age' });
+  return Response.json({ checked, published, failures, claimed: (jobs || []).length, mode: 'automated_basic_checks_unverified_age' });
 });
