@@ -13,8 +13,12 @@ function init(){
  const isLink=target.tagName==='A';
  target.textContent='';
  if(isLink)target.classList.add('oldora-logo-link');
- const img=document.createElement('img');img.className='oldora-official-logo'+(large?' large':'');img.alt='OLDORA';img.loading='eager';target.append(img);
- function update(){const lang=document.documentElement.lang==='ar'?'ar':'en';const next=files[lang];if(img.getAttribute('src')!==next)img.src=next;img.alt=lang==='ar'?'شعار أولدورا':'OLDORA logo';}
+ const ns='http://www.w3.org/2000/svg';
+ const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 710 710');svg.setAttribute('role','img');svg.setAttribute('aria-label','OLDORA logo');svg.classList.add('oldora-official-logo');if(large)svg.classList.add('large');svg.style.overflow='visible';
+ const defs=document.createElementNS(ns,'defs'),clip=document.createElementNS(ns,'clipPath'),circle=document.createElementNS(ns,'circle');
+ const clipId='oldora-emblem-clip';clip.setAttribute('id',clipId);circle.setAttribute('cx','355');circle.setAttribute('cy','355');circle.setAttribute('r','340');clip.append(circle);defs.append(clip);svg.append(defs);
+ const image=document.createElementNS(ns,'image');image.setAttribute('width','710');image.setAttribute('clip-path','url(#'+clipId+')');image.setAttribute('preserveAspectRatio','none');svg.append(image);target.append(svg);
+ function update(){const lang=document.documentElement.lang==='ar'?'ar':'en';if(lang==='ar'){image.setAttribute('href',files.ar);image.setAttribute('x','0');image.setAttribute('y','0');image.setAttribute('height','710')}else{image.setAttribute('href',files.en);image.setAttribute('x','0');image.setAttribute('y','-425');image.setAttribute('height','1536')}svg.setAttribute('aria-label',lang==='ar'?'شعار أولدورا':'OLDORA logo');}
  update();new MutationObserver(update).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
  window.addEventListener('storage',e=>{if(e.key==='oldora_language')update()});
 }
