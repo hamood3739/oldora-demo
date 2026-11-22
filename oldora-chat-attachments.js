@@ -27,6 +27,7 @@
   form.append(picker);
   const originalRefresh = window.refresh;
   let rendering = false;
+  const signedCache = new Map();
   async function renderAttachments() {
     if (!active || rendering || !user) return;
     rendering = true;
@@ -37,15 +38,25 @@
         .eq('conversation_id',conversation).order('created_at',{ascending:true}).limit(100);
       if (error) throw error;
       if (conversation !== active) return;
-      document.querySelectorAll('.oldora-attachment-bubble').forEach(node => node.remove());
+      const existing = new Set(Array.from(document.querySelectorAll('.oldora-attachment-bubble')).map(node => node.dataset.attachmentId));
+      const currentIds = new Set((data || []).map(item => item.id));
+      document.querySelectorAll('.oldora-attachment-bubble').forEach(node => { if (!currentIds.has(node.dataset.attachmentId)) node.remove(); });
       const container = document.getElementById('messages');
       for (const item of data || []) {
-        const {data: signed,error: signError} = await db.storage.from(BUCKET).createSignedUrl(item.storage_path, 300);
-        if (signError || !signed?.signedUrl || conversation !== active) continue;
+        if (existing.has(item.id)) continue;
+        let cached = signedCache.get(item.storage_path);
+        if (!cached || cached.expires < Date.now()) {
+          const {data: signed,error: signError} = await db.storage.from(BUCKET).createSignedUrl(item.storage_path, 300);
+          if (signError || !signed?.signedUrl || conversation !== active) continue;
+          cached = {url:signed.signedUrl,expires:Date.now()+240000};
+          signedCache.set(item.storage_path,cached);
+        }
+        if (conversation !== active) return;
         const bubble = document.createElement('div');
         bubble.className = 'bubble oldora-attachment-bubble ' + (item.sender_id === user.id ? 'mine' : 'theirs');
+        bubble.dataset.attachmentId = item.id;
         const media = document.createElement(item.mime_type.startsWith('image/') ? 'img' : 'video');
-        media.src = signed.signedUrl;
+        media.src = cached.url;
         media.style.cssText = 'display:block;max-width:100%;max-height:260px;border-radius:8px';
         if (media.tagName === 'VIDEO') { media.controls = true; media.preload = 'metadata'; }
         else { media.alt = 'Chat image'; media.loading = 'lazy'; }
@@ -81,7 +92,10 @@
       const {error: saveError} = await db.from('oldora_chat_attachments').insert({
         conversation_id:conversation,sender_id:sender,storage_path:path,mime_type:file.type,file_size:file.size
       });
-      if (saveError) throw saveError;
+      if (saveError) {
+        await db.storage.from(BUCKET).remove([path]).catch(() => {});
+        throw saveError;
+      }
       progress.textContent = 'Attachment sent.';
       await renderAttachments();
     } catch (e) {
