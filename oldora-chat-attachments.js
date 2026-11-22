@@ -47,6 +47,8 @@
       const currentIds = new Set((data || []).map(item => item.id));
       document.querySelectorAll('.oldora-attachment-bubble').forEach(node => { if (!currentIds.has(node.dataset.attachmentId)) node.remove(); });
       const container = document.getElementById('messages');
+      const bottomBefore = container.scrollHeight - container.scrollTop - container.clientHeight < 70;
+      const topBefore = container.scrollTop;
       for (const item of data || []) {
         if (existing.has(item.id)) continue;
         let cached = signedCache.get(item.storage_path);
@@ -70,6 +72,8 @@
         bubble.append(media,time);
         container.append(bubble);
       }
+      if (bottomBefore) container.scrollTop = container.scrollHeight;
+      else container.scrollTop = topBefore;
     } catch (e) { console.warn('Attachment display unavailable:',e); }
     finally { rendering = false; }
   }
