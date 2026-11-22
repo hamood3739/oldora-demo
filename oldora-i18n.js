@@ -76,27 +76,6 @@ function translateNode(node){
  }
 }
 
-function localizeFileInputs(){
- document.querySelectorAll('input[type="file"]').forEach(input=>{
-  if(input.dataset.oldoraFileReady)return;
-  input.dataset.oldoraFileReady='1';
-  const wrap=document.createElement('span');wrap.className='oldora-file-wrap';
-  input.parentNode.insertBefore(wrap,input);wrap.appendChild(input);
-  const visual=document.createElement('span');visual.className='oldora-file-visual';visual.setAttribute('aria-hidden','true');wrap.appendChild(visual);
-  const refresh=()=>{
-   const ar=lang==='ar',files=input.files,count=files?files.length:0;
-   const action=ar?(input.multiple?'اختيار صور':'اختيار ملف'):(input.multiple?'Choose files':'Choose file');
-   const names=count===0?(ar?(input.multiple?'لم تُختر ملفات':'لم يُختر ملف'):(input.multiple?'No files selected':'No file selected')):count===1?files[0].name:(ar?'تم اختيار '+count+' ملفات':count+' files selected');
-   const label=action+' · '+names;
-   if(visual.textContent!==label)visual.textContent=label;
-  };
-  input.addEventListener('change',refresh);
-  input._oldoraFileRefresh=refresh;
-  refresh();
- });
- document.querySelectorAll('input[type="file"]').forEach(input=>input._oldoraFileRefresh?.());
-}
-
 function apply(next){
  lang=next==='ar'?'ar':'en';localStorage.setItem('oldora_language',lang);
  document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
@@ -106,7 +85,6 @@ function apply(next){
  if(toggle)toggle.textContent=lang==='ar'?'English':'العربية';
  translateNode(document.body);
  syncCategoryOptions();
- localizeFileInputs();
 }
 function setup(){
  let b=document.getElementById('oldoraLanguageSwitch');
@@ -114,10 +92,10 @@ function setup(){
 
  if(b)b.addEventListener('click',()=>apply(lang==='ar'?'en':'ar'));
  const css=document.createElement('style');css.textContent='html[dir="rtl"] body{font-family:Tahoma,Arial,sans-serif}html[dir="rtl"] .card,html[dir="rtl"] .panel,html[dir="rtl"] .thread{text-align:right}html[dir="rtl"] input[type="email"],html[dir="rtl"] input[type="password"]{direction:ltr;text-align:left}html[dir="rtl"] .listing-actions{direction:rtl}html[dir="rtl"] #oldoraLanguageSwitch{right:auto;left:16px}';document.head.append(css);
- const fileCss=document.createElement('style');fileCss.textContent='.oldora-file-wrap{position:relative;display:block;min-height:54px;border:1px solid #7e6948;border-radius:8px;background:#242424;overflow:hidden}.oldora-file-wrap input[type=file]{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important;cursor:pointer!important;z-index:2!important;appearance:none!important;-webkit-appearance:none!important;font-size:0!important;color:transparent!important;border:0!important;padding:0!important;margin:0!important;background:transparent!important}.oldora-file-wrap:focus-within{outline:2px solid #c4a46a;outline-offset:2px}.oldora-file-visual{display:flex;align-items:center;min-height:54px;padding:10px 14px;color:#f5f0e6;pointer-events:none;overflow-wrap:anywhere}';document.head.append(fileCss);
+
  apply(lang);
  let queued=false;
- const observer=new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;translateNode(document.body);syncCategoryOptions();localizeFileInputs()})});
+ const observer=new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;translateNode(document.body);syncCategoryOptions()})});
  observer.observe(document.body,{subtree:true,childList:true,characterData:true});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
