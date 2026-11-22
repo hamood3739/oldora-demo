@@ -8,7 +8,7 @@
   if (!form || typeof db === 'undefined') return;
   const picker = document.createElement('input');
   picker.type = 'file';
-  picker.accept = 'image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm';
+  picker.accept = 'image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm,.mov,.mp4,.webm';
   picker.hidden = true;
   picker.id = 'oldoraChatAttachmentInput';
   const attach = document.createElement('button');
@@ -81,21 +81,29 @@
     const file = picker.files?.[0];
     picker.value = '';
     if (!file || !active || !user) return;
-    if (!MIME.has(file.type) || file.size > MAX_BYTES || file.size === 0) {
-      progress.textContent = 'Unsupported file or file larger than 20 MB.';
+    const lang = document.documentElement.lang === 'ar' ? 'ar' : 'en';
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    const inferred = ({mov:'video/quicktime',mp4:'video/mp4',webm:'video/webm',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif'})[ext];
+    const mime = MIME.has(file.type) ? file.type : (!file.type && inferred ? inferred : '');
+    if (file.size > MAX_BYTES) {
+      progress.textContent = lang === 'ar' ? 'الفيديو أو الصورة أكبر من 20 ميجابايت. اختر ملفاً أصغر.' : 'File exceeds 20 MB. Choose a smaller file.';
+      return;
+    }
+    if (!file.size || !MIME.has(mime)) {
+      progress.textContent = lang === 'ar' ? 'صيغة الملف غير مدعومة. جرّب فيديو MP4 أو MOV.' : 'Unsupported format. Try an MP4 or MOV video.';
       return;
     }
     const conversation = active;
     const sender = user.id;
-    const extension = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/quicktime':'mov','video/webm':'webm'})[file.type];
+    const extension = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/quicktime':'mov','video/webm':'webm'})[mime];
     const path = conversation + '/' + sender + '/' + crypto.randomUUID() + '.' + extension;
     attach.disabled = true;
     progress.textContent = 'Uploading attachment...';
     try {
-      const {error: uploadError} = await db.storage.from(BUCKET).upload(path,file,{contentType:file.type,upsert:false});
+      const {error: uploadError} = await db.storage.from(BUCKET).upload(path,file,{contentType:mime,upsert:false});
       if (uploadError) throw uploadError;
       const {error: saveError} = await db.from('oldora_chat_attachments').insert({
-        conversation_id:conversation,sender_id:sender,storage_path:path,mime_type:file.type,file_size:file.size
+        conversation_id:conversation,sender_id:sender,storage_path:path,mime_type:mime,file_size:file.size
       });
       if (saveError) {
         throw saveError;
