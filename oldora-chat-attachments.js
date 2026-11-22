@@ -5,7 +5,7 @@
   const MAX_BYTES = 20 * 1024 * 1024;
   const MIME = new Set(['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/quicktime','video/webm']);
   const form = document.getElementById('sendForm');
-  if (!form || !window.db) return;
+  if (!form || typeof db === 'undefined') return;
   const picker = document.createElement('input');
   picker.type = 'file';
   picker.accept = 'image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm';
@@ -28,20 +28,20 @@
   const originalRefresh = window.refresh;
   let rendering = false;
   async function renderAttachments() {
-    if (!window.active || rendering || !window.user) return;
+    if (!active || rendering || !user) return;
     rendering = true;
-    const conversation = window.active;
+    const conversation = active;
     try {
       const {data,error} = await db.from('oldora_chat_attachments')
         .select('id,conversation_id,sender_id,storage_path,mime_type,created_at')
         .eq('conversation_id',conversation).order('created_at',{ascending:true}).limit(100);
       if (error) throw error;
-      if (conversation !== window.active) return;
+      if (conversation !== active) return;
       document.querySelectorAll('.oldora-attachment-bubble').forEach(node => node.remove());
       const container = document.getElementById('messages');
       for (const item of data || []) {
         const {data: signed,error: signError} = await db.storage.from(BUCKET).createSignedUrl(item.storage_path, 300);
-        if (signError || !signed?.signedUrl || conversation !== window.active) continue;
+        if (signError || !signed?.signedUrl || conversation !== active) continue;
         const bubble = document.createElement('div');
         bubble.className = 'bubble oldora-attachment-bubble ' + (item.sender_id === user.id ? 'mine' : 'theirs');
         const media = document.createElement(item.mime_type.startsWith('image/') ? 'img' : 'video');
@@ -60,17 +60,17 @@
   if (typeof originalRefresh === 'function') {
     window.refresh = async function (...args) { await originalRefresh(...args); await renderAttachments(); };
   }
-  attach.onclick = () => { if (!window.active || !window.user) return; picker.click(); };
+  attach.onclick = () => { if (!active || !user) return; picker.click(); };
   picker.onchange = async () => {
     const file = picker.files?.[0];
     picker.value = '';
-    if (!file || !window.active || !window.user) return;
+    if (!file || !active || !user) return;
     if (!MIME.has(file.type) || file.size > MAX_BYTES || file.size === 0) {
       progress.textContent = 'Unsupported file or file larger than 20 MB.';
       return;
     }
-    const conversation = window.active;
-    const sender = window.user.id;
+    const conversation = active;
+    const sender = user.id;
     const extension = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/quicktime':'mov','video/webm':'webm'})[file.type];
     const path = conversation + '/' + sender + '/' + crypto.randomUUID() + '.' + extension;
     attach.disabled = true;
