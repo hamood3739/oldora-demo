@@ -42,7 +42,7 @@ if(wasLoaded&&newestIncoming&&previousIncoming&&String(newestIncoming.id)!==prev
 }
 msgs.dataset.lastIncomingId=newestIncoming?String(newestIncoming.id):'';
 msgs.dataset.loaded='yes';
-msgs.replaceChildren();for(const m of rows){const el=document.createElement('div');el.className='bubble '+(m.sender_id===user.id?'mine':'theirs');const t=document.createElement('div');t.textContent=m.body;const time=document.createElement('small');time.textContent=new Date(m.created_at).toLocaleString();el.append(t,time);msgs.append(el)}if(!rows.length)msgs.textContent='';msgs.scrollTop=msgs.scrollHeight
+msgs.replaceChildren();for(const m of rows){const el=document.createElement('div');el.className='bubble '+(m.sender_id===user.id?'mine':'theirs');const t=document.createElement('div');t.textContent=m.body;const time=document.createElement('small');time.textContent=new Date(m.created_at).toLocaleString();el.append(t,time);msgs.append(el)}if(!rows.length)msgs.textContent='';msgs.scrollTop=msgs.scrollHeight;window.dispatchEvent(new CustomEvent('oldora:messages-refreshed',{detail:{conversationId:requested}}))
 }finally{refreshBusy=false}}
 document.getElementById('refresh').onclick=refresh;
 const messageInput=document.getElementById('body'),messageForm=document.getElementById('sendForm');
