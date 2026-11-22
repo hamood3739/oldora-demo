@@ -230,7 +230,7 @@ main>.muted{background:rgba(0,0,0,.72);border-radius:8px;padding:9px 12px}
 
     <section class="card">
       <h3>Add a Vintage Item</h3>
-      <p>Classic and vintage categories require 20+ years. Retro Collectibles accepts items aged 15–19 years. Listings remain pending until verification is enabled.</p>
+      <p>All OLDORA items must be at least 20 years old. Listings undergo automated checks.</p>
       <form id="listingForm">
         <h4 style="color:var(--gold)">Listing Readiness Check</h4>
         <p class="muted">Checks your form before submission. This is not proof of authenticity or age verification.</p>
@@ -256,7 +256,7 @@ main>.muted{background:rgba(0,0,0,.72);border-radius:8px;padding:9px 12px}
         <label for="itemPrice">Price (SAR)</label>
         <input id="itemPrice" type="number" min="1" step="0.01" inputmode="decimal" required>
         <label for="itemAge">Item age (years)</label>
-        <input id="itemAge" type="number" min="15" max="1000" required>
+        <input id="itemAge" type="number" min="20" max="1000" required>
         <label for="itemYear">Manufacture year (estimated)</label>
         <input id="itemYear" type="number" min="1000" max="2011" inputmode="numeric" required>
         <label for="itemOrigin">Country of origin</label>
@@ -285,7 +285,6 @@ main>.muted{background:rgba(0,0,0,.72);border-radius:8px;padding:9px 12px}
           <option value="Historical Memorabilia">Historical Memorabilia</option>
           <option value="Traditional &amp; Heritage Items">Traditional &amp; Heritage Items</option>
           <option value="Other Vintage Items">Other Vintage Items</option>
-          <option value="Retro Collectibles">Retro Collectibles (15–19 years)</option>
         </select>
         <label for="itemCondition">Condition</label>
         <select id="itemCondition" required>
@@ -901,13 +900,12 @@ document.getElementById('checkListing').addEventListener('click', () => {
   const age = Number(get('itemAge'));
   const year = Number(get('itemYear'));
   const photos = Array.from(document.getElementById('itemPhotos').files);
-  const modern = get('itemCategory') === 'Retro Collectibles';
-  const minAge = modern ? 15 : 20;
+  const minAge = 20;
   const maxYear = new Date().getFullYear() - minAge;
   if (!get('itemTitle')) issues.push('Add an item title.');
   if (!get('itemDescription')) issues.push('Add a description.');
   if (!(Number(get('itemPrice')) > 0)) issues.push('Enter a valid price.');
-  if (!Number.isInteger(age) || age < minAge || (modern && age > 19)) issues.push(modern ? 'Retro Collectibles must be 15–19 years old.' : 'This category requires at least 20 years.');
+  if (!Number.isInteger(age) || age < minAge) issues.push('This category requires at least 20 years.');
   if (!Number.isInteger(year) || year > maxYear || year < 1) issues.push('Check the manufacture year for the selected category.');
   if (Number.isInteger(age) && Number.isInteger(year) && Math.abs((new Date().getFullYear() - year) - age) > 1) issues.push('Item age and manufacture year do not agree.');
   if (!get('itemOrigin')) issues.push('Enter country of origin.');
@@ -932,10 +930,9 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
   const button = document.getElementById('listingSubmit');
   const message = document.getElementById('listingMessage');
   const age = Number(document.getElementById('itemAge').value);
-  const modern = document.getElementById('itemCategory').value === 'Retro Collectibles';
-  const minAge = modern ? 15 : 20;
-  if (!Number.isInteger(age) || age < minAge || (modern && age > 19)) {
-    message.textContent = modern ? 'Retro Collectibles must be 15–19 years old.' : 'This category requires items at least 20 years old.';
+  const minAge = 20;
+  if (!Number.isInteger(age) || age < minAge) {
+    message.textContent = 'This category requires items at least 20 years old.';
     return;
   }
   const price = Number(document.getElementById('itemPrice').value);
@@ -947,10 +944,6 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
   const oldestAllowedYear = new Date().getFullYear() - minAge;
   if (!Number.isInteger(year) || year < 1000 || year > oldestAllowedYear) {
     message.textContent = 'Manufacture year does not meet the selected category requirement.';
-    return;
-  }
-  if (modern && new Date().getFullYear() - year > 20) {
-    message.textContent = 'Retro Collectibles is reserved for items aged 15–19 years.';
     return;
   }
   if (age < new Date().getFullYear() - year - 1 || age > new Date().getFullYear() - year + 1) {
@@ -1085,17 +1078,17 @@ document.getElementById('commissionSalePrice').addEventListener('input', (event)
   }
   await check();setInterval(check,12000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});
 })().catch(()=>{});
-</script><script defer src="oldora-sounds.js?v=1"></script><script defer src="oldora-i18n.js?v=20261115"></script><script defer src="oldora-notifications.js?v=2"></script><script>
-/* Year eligibility depends on the chosen category; avoid a fixed 20+ HTML max for 15–19 items. */
+</script><script defer src="oldora-sounds.js?v=1"></script><script defer src="oldora-i18n.js?v=20261122a"></script><script defer src="oldora-notifications.js?v=2"></script><script>
+/* All listing categories require an age of at least 20 years. */
 (function(){
  const year=document.getElementById('itemYear'),category=document.getElementById('itemCategory');
  if(!year||!category)return;
  function update(){
-  const retro=category.value==='Retro Collectibles',current=new Date().getFullYear();
-  year.max=String(current-(retro?15:20));
-  year.min=String(retro?current-19:1000);
+  const current=new Date().getFullYear();
+  year.max=String(current-20);
+  year.min='1000';
   const ar=document.documentElement.lang==='ar';
-  year.title=ar?(retro?'سنة الصنع للفئة من ١٥ إلى ١٩ سنة':'سنة الصنع للمنتجات بعمر ٢٠ سنة فأكثر'):(retro?'Manufacture year for items aged 15–19':'Manufacture year for items aged 20+');
+  year.title=ar?'سنة الصنع للمنتجات بعمر ٢٠ سنة فأكثر':'Manufacture year for items aged 20+';
  }
  category.addEventListener('change',update);
  new MutationObserver(update).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
