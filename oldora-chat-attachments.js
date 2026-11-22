@@ -26,6 +26,7 @@
   form.after(progress);
   form.append(picker);
   let displayedConversation = null;
+  let lastRenderedConversation = null;
   let rendering = false;
   const signedCache = new Map();
   async function renderAttachments() {
@@ -35,6 +36,7 @@
     if (displayedConversation !== conversation) {
       document.querySelectorAll('.oldora-attachment-bubble').forEach(node => node.remove());
       displayedConversation = conversation;
+      signedCache.clear();
     }
     try {
       const {data,error} = await db.from('oldora_chat_attachments')
@@ -68,6 +70,7 @@
         time.textContent = new Date(item.created_at).toLocaleString();
         bubble.append(media,time);
         container.append(bubble);
+        lastRenderedConversation = conversation;
       }
     } catch (e) { console.warn('Attachment display unavailable:',e); }
     finally { rendering = false; }
