@@ -87,7 +87,8 @@ function localizeFileInputs(){
    const ar=lang==='ar',files=input.files,count=files?files.length:0;
    const action=ar?(input.multiple?'اختيار صور':'اختيار ملف'):(input.multiple?'Choose files':'Choose file');
    const names=count===0?(ar?(input.multiple?'لم تُختر ملفات':'لم يُختر ملف'):(input.multiple?'No files selected':'No file selected')):count===1?files[0].name:(ar?'تم اختيار '+count+' ملفات':count+' files selected');
-   visual.textContent=action+' · '+names;
+   const label=action+' · '+names;
+   if(visual.textContent!==label)visual.textContent=label;
   };
   input.addEventListener('change',refresh);
   input._oldoraFileRefresh=refresh;
