@@ -2,7 +2,41 @@
 (() => {
   'use strict';
   const BUCKET = 'oldora-private-chat';
-  const MAX_BYTES = 20 * 1024 * 1024;
+  const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+  const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
+  const MAX_VIDEO_EDGE = 1920;
+  const MAX_VIDEO_SHORT_EDGE = 1080;
+  function isArabic() { return document.documentElement.lang === 'ar'; }
+  function statusText(ar,en) { progress.textContent = isArabic() ? ar : en; }
+  function videoDimensions(file) {
+    return new Promise((resolve,reject) => {
+      const video = document.createElement('video');
+      const url = URL.createObjectURL(file);
+      const cleanup = () => { video.removeAttribute('src'); video.load(); URL.revokeObjectURL(url); };
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => { const w=video.videoWidth,h=video.videoHeight; cleanup(); w&&h ? resolve({w,h}) : reject(Error('Video dimensions unavailable')); };
+      video.onerror = () => { cleanup(); reject(Error('Video metadata could not be read')); };
+      video.src = url;
+    });
+  }
+  function uploadLarge(file,path,mime) {
+    return new Promise(async (resolve,reject) => {
+      if (!window.tus?.Upload) { reject(Error('Resumable upload library unavailable')); return; }
+      const {data,error} = await db.auth.getSession();
+      if (error || !data?.session?.access_token) { reject(error || Error('Sign in again')); return; }
+      const upload = new window.tus.Upload(file, {
+        endpoint:'https://hakjlkltjwvatzgasvos.storage.supabase.co/storage/v1/upload/resumable',
+        retryDelays:[0,3000,5000,10000,20000],
+        headers:{authorization:'Bearer '+data.session.access_token,'x-upsert':'false'},
+        uploadDataDuringCreation:true,removeFingerprintOnSuccess:true,
+        metadata:{bucketName:BUCKET,objectName:path,contentType:mime,cacheControl:'3600'},
+        chunkSize:6*1024*1024,
+        onProgress:(done,total)=>statusText('جارٍ رفع الفيديو... '+Math.round(done/total*100)+'٪','Uploading video... '+Math.round(done/total*100)+'%'),
+        onError:reject,onSuccess:resolve
+      });
+      upload.start();
+    });
+  }
   const MIME = new Set(['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/quicktime','video/webm']);
   const form = document.getElementById('sendForm');
   if (!form || typeof db === 'undefined') return;
@@ -89,33 +123,51 @@
     const ext = (file.name.split('.').pop() || '').toLowerCase();
     const inferred = ({mov:'video/quicktime',mp4:'video/mp4',webm:'video/webm',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif'})[ext];
     const mime = MIME.has(file.type) ? file.type : (!file.type && inferred ? inferred : '');
-    if (file.size > MAX_BYTES) {
-      progress.textContent = lang === 'ar' ? 'الفيديو أو الصورة أكبر من 20 ميجابايت. اختر ملفاً أصغر.' : 'File exceeds 20 MB. Choose a smaller file.';
+    const isVideo = mime.startsWith('video/');
+    const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+    if (file.size > maxBytes) {
+      statusText(isVideo ? 'الحد الأقصى للفيديو 100 ميجابايت.' : 'الحد الأقصى للصورة 20 ميجابايت.',isVideo ? 'Video limit: 100 MB.' : 'Image limit: 20 MB.');
       return;
     }
     if (!file.size || !MIME.has(mime)) {
-      progress.textContent = lang === 'ar' ? 'صيغة الملف غير مدعومة. جرّب فيديو MP4 أو MOV.' : 'Unsupported format. Try an MP4 or MOV video.';
+      statusText('صيغة الملف غير مدعومة. جرّب MP4 أو MOV.','Unsupported format. Try MP4 or MOV.');
       return;
+    }
+    if (isVideo) {
+      try {
+        statusText('جارٍ فحص دقة الفيديو...','Checking video resolution...');
+        const {w,h} = await videoDimensions(file);
+        if (Math.max(w,h)>MAX_VIDEO_EDGE || Math.min(w,h)>MAX_VIDEO_SHORT_EDGE) {
+          statusText('دقة الفيديو تتجاوز 1080p. اختر فيديو بدقة 1080p أو 720p.','Video exceeds 1080p. Choose 1080p or 720p.');
+          return;
+        }
+      } catch(e) {
+        statusText('تعذر قراءة دقة الفيديو. جرّب فيديو MP4 أو MOV آخر.','Could not read video resolution. Try another MP4 or MOV.');
+        return;
+      }
     }
     const conversation = active;
     const sender = user.id;
     const extension = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/quicktime':'mov','video/webm':'webm'})[mime];
     const path = conversation + '/' + sender + '/' + crypto.randomUUID() + '.' + extension;
     attach.disabled = true;
-    progress.textContent = 'Uploading attachment...';
+    statusText('جارٍ رفع المرفق...','Uploading attachment...');
     try {
-      const {error: uploadError} = await db.storage.from(BUCKET).upload(path,file,{contentType:mime,upsert:false});
-      if (uploadError) throw uploadError;
+      if (file.size > 6*1024*1024) await uploadLarge(file,path,mime);
+      else {
+        const {error: uploadError} = await db.storage.from(BUCKET).upload(path,file,{contentType:mime,upsert:false});
+        if (uploadError) throw uploadError;
+      }
       const {error: saveError} = await db.from('oldora_chat_attachments').insert({
         conversation_id:conversation,sender_id:sender,storage_path:path,mime_type:mime,file_size:file.size
       });
       if (saveError) {
         throw saveError;
       }
-      progress.textContent = 'Attachment sent.';
+      statusText('تم إرسال المرفق.','Attachment sent.');
       await renderAttachments();
     } catch (e) {
-      progress.textContent = 'Attachment failed: ' + (e?.message || 'Please retry.');
+      statusText('فشل رفع المرفق: '+(e?.message||'حاول مجدداً.'),'Attachment failed: '+(e?.message||'Please retry.'));
     } finally { attach.disabled = false; }
   };
 })();
