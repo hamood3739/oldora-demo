@@ -25,13 +25,17 @@
   form.insertBefore(attach, form.querySelector('#send'));
   form.after(progress);
   form.append(picker);
-  const originalRefresh = window.refresh;
+  let displayedConversation = null;
   let rendering = false;
   const signedCache = new Map();
   async function renderAttachments() {
     if (!active || rendering || !user) return;
     rendering = true;
     const conversation = active;
+    if (displayedConversation !== conversation) {
+      document.querySelectorAll('.oldora-attachment-bubble').forEach(node => node.remove());
+      displayedConversation = conversation;
+    }
     try {
       const {data,error} = await db.from('oldora_chat_attachments')
         .select('id,conversation_id,sender_id,storage_path,mime_type,created_at')
@@ -68,9 +72,9 @@
     } catch (e) { console.warn('Attachment display unavailable:',e); }
     finally { rendering = false; }
   }
-  if (typeof originalRefresh === 'function') {
-    window.refresh = async function (...args) { await originalRefresh(...args); await renderAttachments(); };
-  }
+  window.addEventListener('oldora:messages-refreshed', event => {
+    if (event.detail?.conversationId === active) void renderAttachments();
+  });
   attach.onclick = () => { if (!active || !user) return; picker.click(); };
   picker.onchange = async () => {
     const file = picker.files?.[0];
@@ -93,7 +97,6 @@
         conversation_id:conversation,sender_id:sender,storage_path:path,mime_type:file.type,file_size:file.size
       });
       if (saveError) {
-        await db.storage.from(BUCKET).remove([path]).catch(() => {});
         throw saveError;
       }
       progress.textContent = 'Attachment sent.';
