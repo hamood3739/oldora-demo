@@ -27,7 +27,7 @@ async function showProduct(id){
  }
  preview.hidden=false;
 }
-async function open(id){const c=all.find(x=>x.id===id);if(!c)return;if(active!==id){msgs.dataset.loaded='';msgs.dataset.lastIncomingId='';lastIncomingSoundId=''}active=id;chat.classList.add('active');document.getElementById('heading').hidden=true;document.getElementById('body').disabled=false;document.getElementById('body').placeholder='Write your message...';document.getElementById('send').disabled=false;document.getElementById('heading').textContent='Conversation about item #'+c.product_id;try{await showProduct(c.product_id)}catch(e){console.warn('Product preview unavailable',e)}await refresh();if(pollHandle)clearInterval(pollHandle);pollHandle=setInterval(()=>{if(active)refresh()},4000)}
+async function open(id){const c=all.find(x=>x.id===id);if(!c)return;if(active!==id){msgs.dataset.loaded='';msgs.dataset.lastIncomingId='';msgs.dataset.renderKey='';lastIncomingSoundId=''}active=id;chat.classList.add('active');document.getElementById('heading').hidden=true;document.getElementById('body').disabled=false;document.getElementById('body').placeholder='Write your message...';document.getElementById('send').disabled=false;document.getElementById('heading').textContent='Conversation about item #'+c.product_id;try{await showProduct(c.product_id)}catch(e){console.warn('Product preview unavailable',e)}await refresh();if(pollHandle)clearInterval(pollHandle);pollHandle=setInterval(()=>{if(active)refresh()},4000)}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&active)refresh()});window.addEventListener('pageshow',()=>{if(active)refresh()});
 let refreshBusy=false;let lastIncomingSoundId='';
 async function refresh(){if(!active||refreshBusy)return;refreshBusy=true;try{
@@ -42,7 +42,17 @@ if(wasLoaded&&newestIncoming&&previousIncoming&&String(newestIncoming.id)!==prev
 }
 msgs.dataset.lastIncomingId=newestIncoming?String(newestIncoming.id):'';
 msgs.dataset.loaded='yes';
-msgs.replaceChildren();for(const m of rows){const el=document.createElement('div');el.className='bubble '+(m.sender_id===user.id?'mine':'theirs');const t=document.createElement('div');t.textContent=m.body;const time=document.createElement('small');time.textContent=new Date(m.created_at).toLocaleString();el.append(t,time);msgs.append(el)}if(!rows.length)msgs.textContent='';msgs.scrollTop=msgs.scrollHeight;window.dispatchEvent(new CustomEvent('oldora:messages-refreshed',{detail:{conversationId:requested}}))
+const renderKey=requested+'|'+rows.map(m=>m.id+':'+m.body).join('|');
+if(msgs.dataset.renderKey!==renderKey){
+ const wasAtBottom=msgs.scrollHeight-msgs.scrollTop-msgs.clientHeight<70;
+ const oldTop=msgs.scrollTop;
+ const firstRender=!msgs.dataset.renderKey;
+ msgs.replaceChildren();for(const m of rows){const el=document.createElement('div');el.className='bubble '+(m.sender_id===user.id?'mine':'theirs');const t=document.createElement('div');t.textContent=m.body;const time=document.createElement('small');time.textContent=new Date(m.created_at).toLocaleString();el.append(t,time);msgs.append(el)}
+ msgs.dataset.renderKey=renderKey;
+ if(firstRender||wasAtBottom)msgs.scrollTop=msgs.scrollHeight;
+ else msgs.scrollTop=oldTop;
+}
+window.dispatchEvent(new CustomEvent('oldora:messages-refreshed',{detail:{conversationId:requested}}))
 }finally{refreshBusy=false}}
 document.getElementById('refresh').onclick=refresh;
 const messageInput=document.getElementById('body'),messageForm=document.getElementById('sendForm');
