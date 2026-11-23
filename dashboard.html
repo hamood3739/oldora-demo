@@ -172,7 +172,6 @@ main>.muted{background:rgba(0,0,0,.72);border-radius:8px;padding:9px 12px}
     <a href="settings.html" data-ar="إعدادات الحساب" data-en="Account Settings">إعدادات الحساب</a>
     <button type="button" id="oldoraMenuSignOut" data-ar="تسجيل الخروج" data-en="Sign Out">تسجيل الخروج</button>
   </nav>
-  <div id="oldoraInboxAlert" class="oldora-inbox-alert" role="status" aria-live="polite" hidden><a id="oldoraInboxLink" href="messages.html?inbox=1">💬 <span id="oldoraInboxLabel">رسائل جديدة · New messages</span></a></div>
   <main>
     <h2>Seller Dashboard</h2>
     <section class="card" id="myListingsSection">
@@ -1104,30 +1103,7 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
 
 </script>
 
-<script>
-/* Lightweight inbox alert while the seller dashboard is open. No browser push permission required. */
-(async function oldoraInboxMonitor(){
-  const client=window.supabase?.createClient('https://hakjlkltjwvatzgasvos.supabase.co','sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb');
-  if(!client)return;
-  const session=await client.auth.getSession();const uid=session.data?.session?.user?.id;if(!uid)return;
-  const alert=document.getElementById('oldoraInboxAlert'),label=document.getElementById('oldoraInboxLabel');
-  const key='oldora:inbox:lastseen:'+uid;let previous='';
-  try{previous=localStorage.getItem(key)||''}catch(_){}
-  async function check(){
-    if(document.hidden)return;
-    const {data:conversations,error}=await client.from('oldora_conversations').select('id').eq('seller_id',uid);
-    if(error||!conversations?.length)return;
-    const ids=conversations.map(x=>x.id);
-    const {data:messages,error:msgError}=await client.from('oldora_messages').select('id,sender_id,created_at').in('conversation_id',ids).neq('sender_id',uid).order('created_at',{ascending:false}).limit(1);
-    if(msgError)return;
-    const newest=messages?.[0];if(!newest)return;
-    alert.hidden=false;label.textContent='💬 لديك رسائل من المشترين · View buyer messages';
-    if(!previous){previous=newest.id;try{localStorage.setItem(key,previous)}catch(_){};return}
-    if(newest.id!==previous){alert.hidden=false;label.textContent='🔔 رسالة جديدة من مشتري · New buyer message';previous=newest.id;try{localStorage.setItem(key,previous)}catch(_){}}
-  }
-  await check();setInterval(check,12000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});
-})().catch(()=>{});
-</script><script defer src="oldora-sounds.js?v=1"></script><script defer src="oldora-i18n.js?v=20261123sellerMenu3"></script><script defer src="oldora-notifications.js?v=2"></script><script>
+<script defer src="oldora-sounds.js?v=1"></script><script defer src="oldora-i18n.js?v=20261123sellerMenu3"></script><script defer src="oldora-notifications.js?v=2"></script><script>
 /* All listing categories require an age of at least 20 years. */
 (function(){
  const year=document.getElementById('itemYear'),category=document.getElementById('itemCategory');
