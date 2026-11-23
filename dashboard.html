@@ -574,61 +574,100 @@ async function loadMyListings(userId) {
     const closeButton = document.createElement('button');
     closeButton.type = 'button';
     closeButton.className = 'button';
-    closeButton.textContent = 'End Listing';
+    closeButton.style.cssText = 'margin-top:12px;border:1px solid #b38a72;background:#261c18;color:#f0c6ac;display:inline-flex;align-items:center;gap:7px';
+    const listingLang = () => { try { return localStorage.getItem('oldora_language') === 'ar' ? 'ar' : 'en'; } catch (e) { return document.documentElement.lang === 'ar' ? 'ar' : 'en'; } };
+    const label = (ar, en) => listingLang() === 'ar' ? ar : en;
+    closeButton.textContent = label('🗑 حذف / إنهاء الإعلان', '🗑 Remove / End Listing');
+    closeButton.setAttribute('aria-expanded', 'false');
     closeButton.addEventListener('click', () => {
       const existing = entry.querySelector('.oldora-close-panel');
-      if (existing) { existing.remove(); return; }
+      if (existing) { existing.remove(); closeButton.setAttribute('aria-expanded', 'false'); return; }
+      closeButton.setAttribute('aria-expanded', 'true');
       const panel = document.createElement('section');
       panel.className = 'oldora-close-panel';
-      panel.style.cssText = 'padding:14px;border:1px solid var(--gold);border-radius:10px;margin-top:12px;text-align:left';
+      panel.style.cssText = 'padding:16px;border:1px solid var(--gold);border-radius:10px;margin-top:12px;text-align:start;background:#211c17';
       const heading = document.createElement('h3');
-      heading.textContent = 'Was this item sold?';
-      const choice = document.createElement('select');
-      choice.setAttribute('aria-label', 'Was this item sold?');
-      [['','Select an answer'],['yes','Yes, sold'],['no','No, not sold']].forEach(([value,label]) => choice.add(new Option(label,value)));
+      heading.textContent = label('لماذا تريد حذف هذا الإعلان؟', 'Why are you removing this listing?');
+      const note = document.createElement('p');
+      note.className = 'muted';
+      note.textContent = label('سيُزال الإعلان من العرض، مع الاحتفاظ بسجل إغلاقه.', 'The listing will be removed from display while its closure record is retained.');
+      const reasonLabel = document.createElement('label');
+      reasonLabel.textContent = label('سبب الحذف', 'Reason for removal');
+      const reason = document.createElement('select');
+      reason.required = true;
+      const options = [
+        ['', 'اختر السبب', 'Choose a reason', null],
+        ['sold_oldora', 'تم بيع السلعة عبر OLDORA', 'Sold through OLDORA', true],
+        ['sold_elsewhere', 'تم بيع السلعة خارج OLDORA', 'Sold elsewhere', true],
+        ['changed_mind', 'لم أعد أرغب في بيع السلعة', 'No longer wish to sell', false],
+        ['edit_replace', 'أريد تعديل الإعلان أو استبداله', 'Want to edit or replace listing', false],
+        ['unavailable', 'السلعة لم تعد متوفرة', 'Item is no longer available', false],
+        ['other', 'سبب آخر', 'Other reason', false]
+      ];
+      options.forEach(([value,ar,en]) => reason.add(new Option(label(ar,en),value)));
+      reasonLabel.appendChild(reason);
+      const otherLabel = document.createElement('label');
+      otherLabel.textContent = label('تفاصيل إضافية (اختياري)', 'Additional details (optional)');
+      const otherInput = document.createElement('textarea');
+      otherInput.rows = 2; otherInput.maxLength = 300;
+      otherLabel.appendChild(otherInput); otherLabel.hidden = true;
       const priceLabel = document.createElement('label');
-      priceLabel.textContent = 'Final sale price (SAR)';
+      priceLabel.textContent = label('سعر البيع النهائي (ريال)', 'Final sale price (SAR)');
       const priceInput = document.createElement('input');
       priceInput.type = 'number'; priceInput.min = '0.01'; priceInput.step = '0.01'; priceInput.inputMode = 'decimal';
-      priceLabel.appendChild(priceInput);
-      priceLabel.hidden = true;
+      priceLabel.appendChild(priceInput); priceLabel.hidden = true;
       const calculation = document.createElement('p');
-      calculation.setAttribute('aria-live','polite');
+      calculation.setAttribute('aria-live', 'polite');
+      const controls = document.createElement('div');
+      controls.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;margin-top:12px';
       const confirm = document.createElement('button');
-      confirm.type = 'button'; confirm.className = 'button'; confirm.textContent = 'Confirm';
+      confirm.type = 'button'; confirm.className = 'button';
+      confirm.textContent = label('تأكيد إنهاء الإعلان', 'Confirm removal');
       confirm.disabled = true;
+      const cancel = document.createElement('button');
+      cancel.type = 'button'; cancel.className = 'button';
+      cancel.textContent = label('إلغاء', 'Cancel');
+      cancel.addEventListener('click', () => { panel.remove(); closeButton.setAttribute('aria-expanded', 'false'); });
       const result = document.createElement('p');
-      result.className = 'muted'; result.setAttribute('role','status');
+      result.className = 'muted'; result.setAttribute('role', 'status');
+      const isSold = () => reason.value === 'sold_oldora' || reason.value === 'sold_elsewhere';
       const update = () => {
-        priceLabel.hidden = choice.value !== 'yes';
+        const sold = isSold();
+        priceLabel.hidden = !sold;
+        otherLabel.hidden = reason.value !== 'other';
         const amount = Number(priceInput.value);
-        const valid = priceInput.value.trim() !== '' && Number.isFinite(amount) && amount > 0 && Math.round(amount*100) === amount*100;
-        calculation.textContent = choice.value === 'yes' && valid
-          ? 'OLDORA commission (1%): ' + (Math.round(amount) / 100).toFixed(2) + ' SAR'
-          : choice.value === 'no' ? 'No commission is due for an unsold item.' : '';
-        confirm.disabled = !(choice.value === 'no' || (choice.value === 'yes' && valid));
+        const valid = priceInput.value.trim() !== '' && Number.isFinite(amount) && amount > 0 && amount <= 999999999999.99 && Math.abs(Math.round(amount * 100) - amount * 100) < 0.00001;
+        calculation.textContent = sold
+          ? (valid ? label('عمولة OLDORA (١٪): ', 'OLDORA commission (1%): ') + (Math.round(amount) / 100).toFixed(2) + label(' ريال', ' SAR') : label('أدخل سعر البيع لحساب عمولة ١٪.', 'Enter the sale price to calculate the 1% commission.'))
+          : reason.value ? label('لا تُستحق عمولة إذا لم تُبع السلعة.', 'No commission is due if the item was not sold.') : '';
+        confirm.disabled = !(reason.value && (!sold || valid));
       };
-      choice.addEventListener('change', update);
+      reason.addEventListener('change', update);
       priceInput.addEventListener('input', update);
       confirm.addEventListener('click', async () => {
-        confirm.disabled = true;
-        result.textContent = 'Saving your response...';
+        if (!reason.value) return;
+        const sold = isSold();
+        if (!window.confirm(label('هل أنت متأكد من إنهاء هذا الإعلان؟', 'Are you sure you want to end this listing?'))) return;
+        confirm.disabled = true; cancel.disabled = true; reason.disabled = true;
+        result.textContent = label('جارٍ حفظ طلبك...', 'Saving your request...');
         try {
           const { error } = await supabaseClient.rpc('oldora_close_listing', {
             p_product_id: item.id,
-            p_was_sold: choice.value === 'yes',
-            p_sale_price: choice.value === 'yes' ? Number(priceInput.value) : null
+            p_was_sold: sold,
+            p_sale_price: sold ? Number(priceInput.value) : null
           });
           if (error) throw error;
-          result.textContent = 'Listing closed and response saved.';
+          result.textContent = label('تم إنهاء الإعلان بنجاح.', 'Listing ended successfully.');
           await Promise.all([loadMyListings(userId), loadCommissionHistory(userId)]);
         } catch (error) {
-          result.textContent = 'Unable to close listing yet. The secure server-side closing feature must be activated: ' + (error.message || 'Please try again.');
-          update();
+          result.textContent = label('تعذر إنهاء الإعلان: ', 'Unable to end listing: ') + (error.message || label('حاول مرة أخرى.', 'Please try again.'));
+          cancel.disabled = false; reason.disabled = false; update();
         }
       });
-      panel.append(heading, choice, priceLabel, calculation, confirm, result);
+      controls.append(confirm, cancel);
+      panel.append(heading, note, reasonLabel, otherLabel, priceLabel, calculation, controls, result);
       entry.appendChild(panel);
+      reason.focus();
     });
     if (!['sold','withdrawn'].includes(String(item.status || '').toLowerCase())) entry.appendChild(closeButton);
 
