@@ -191,8 +191,6 @@ main>.muted{background:rgba(0,0,0,.72);border-radius:8px;padding:9px 12px}
         <option value="approved">Approved</option>
         <option value="published">Published</option>
         <option value="rejected">Rejected</option>
-        <option value="sold">Sold</option>
-        <option value="withdrawn">Withdrawn</option>
       </select>
       <button type="button" class="button" id="checkAllPendingButton">Check All Pending Listings</button>
       <p class="muted" style="font-size:13px">Automated readiness checks only. Passing does not verify authenticity or publish an item.</p>
@@ -491,12 +489,19 @@ async function loadMyListings(userId) {
     status.textContent = 'Unable to load listings: ' + error.message;
     return;
   }
-  if (!data || data.length === 0) {
-    status.textContent = 'You have no listings yet. Add your first vintage item below.';
+  // Completed and withdrawn listings remain in the database for audit and
+  // commission history, but must not reappear in the seller's active list.
+  const activeListings = (data || []).filter(item =>
+    !['sold', 'withdrawn'].includes(String(item.status || '').toLowerCase())
+  );
+  if (activeListings.length === 0) {
+    status.textContent = document.documentElement.lang === 'ar'
+      ? 'لا توجد إعلانات نشطة حالياً. يمكنك إضافة إعلان جديد أدناه.'
+      : 'You have no active listings. Add a new vintage item below.';
     return;
   }
-  status.textContent = 'Your listings (' + data.length + ')';
-  data.forEach(item => {
+  status.textContent = 'Your active listings (' + activeListings.length + ')';
+  activeListings.forEach(item => {
     const entry = document.createElement('article');
     entry.className = 'seller-listing';
     entry.dataset.listingStatus = String(item.status || 'pending').toLowerCase();
