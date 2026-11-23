@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101010">
 <title>OLDORA</title>
+<script>try{const lang=localStorage.getItem("oldora_language")==="ar"?"ar":"en";document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr"}catch(e){}</script>
+<style>html:not(.oldora-lang-ready) body{visibility:hidden}</style>
 <style>
 :root{--gold:#c4a46a;--bg:#101010;--panel:#1b1916;--line:#5c4b32;--cream:#f5f0e6}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--cream);font-family:Georgia,serif}a{color:inherit}
@@ -100,6 +102,7 @@ function applyLanguage(lang){
  });
  document.getElementById('cityFilterLabel').textContent=currentLang==='ar'?'📍 مدينة السلعة':'📍 Item city';cityFilter.options[0].textContent=currentLang==='ar'?'جميع المدن':'All cities';
  render();
+ document.documentElement.classList.add('oldora-lang-ready');
 }
 document.getElementById('languageToggle').addEventListener('click',()=>applyLanguage(currentLang==='en'?'ar':'en'));
 const cityFilter=document.getElementById('cityFilter');
@@ -133,6 +136,7 @@ search.addEventListener('input',render);select.addEventListener('change',render)
 const client=window.supabase?.createClient('https://hakjlkltjwvatzgasvos.supabase.co','sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let hasSession=false;
 function updateAccountLink(){const link=document.getElementById('accountLink');if(!link)return;link.textContent=translations[currentLang][hasSession?'account':'signin'];link.href=hasSession?'dashboard.html':'auth.html';}
+applyLanguage(localStorage.getItem('oldora_language')==='ar'?'ar':'en');
 if(client){client.auth.getSession().then(({data,error})=>{hasSession=!error&&!!data?.session?.user;updateAccountLink()}).catch(()=>{});client.auth.onAuthStateChange((_event,session)=>{hasSession=!!session;updateAccountLink()});}
 (async()=>{if(!client){loadFailed=true;applyLanguage(localStorage.getItem('oldora_language')==='ar'?'ar':'en');return}
 try{
