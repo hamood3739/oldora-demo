@@ -590,7 +590,7 @@ async function loadMyListings(userId) {
     closeButton.type = 'button';
     closeButton.className = 'button';
     closeButton.style.cssText = 'margin:8px 0;padding:12px;border:1px solid #b38a72;background:#261c18;color:#f0c6ac;display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:44px';
-    const listingLang = () => { try { return localStorage.getItem('oldora_language') === 'ar' ? 'ar' : 'en'; } catch (e) { return document.documentElement.lang === 'ar' ? 'ar' : 'en'; } };
+    const listingLang = () => { try { return localStorage.getItem('oldora_language') === 'en' ? 'en' : 'ar'; } catch (e) { return document.documentElement.lang === 'ar' ? 'ar' : 'en'; } };
     const label = (ar, en) => listingLang() === 'ar' ? ar : en;
     closeButton.textContent = label('🗑 حذف / إنهاء الإعلان', '🗑 Remove / End Listing');
     closeButton.setAttribute('aria-expanded', 'false');
@@ -1126,7 +1126,7 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
 
 </script>
 
-<script defer src="oldora-sounds.js?v=1"></script><script defer src="oldora-i18n.js?v=20261123sellerMenu3"></script><script defer src="oldora-notifications.js?v=2"></script><script>
+<script defer src="oldora-sounds.js?v=1"></script><script defer src="oldora-i18n.js?v=20261123arabicdefault8"></script><script defer src="oldora-notifications.js?v=2"></script><script>
 /* All listing categories require an age of at least 20 years. */
 (function(){
  const year=document.getElementById('itemYear'),category=document.getElementById('itemCategory');
