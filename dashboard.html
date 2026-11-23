@@ -676,11 +676,6 @@ async function loadMyListings(userId) {
     });
     if (!['sold','withdrawn'].includes(String(item.status || '').toLowerCase())) { entry.insertBefore(closeButton, actions); }
 
-    const previewLink = document.createElement('a');
-    previewLink.className = 'button';
-    previewLink.href = 'preview.html?version=842c40ea&id=' + encodeURIComponent(String(item.id));
-    previewLink.textContent = 'Preview My Listing (Private)';
-    entry.appendChild(previewLink);
     if (item.status === 'pending') {
       const editButton = document.createElement('button');
       editButton.type = 'button';
