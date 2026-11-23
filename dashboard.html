@@ -683,13 +683,21 @@ async function loadMyListings(userId) {
     });
     if (!['sold','withdrawn'].includes(String(item.status || '').toLowerCase())) { entry.insertBefore(closeButton, actions); }
 
-    if (item.status === 'pending') {
-      const editButton = document.createElement('button');
-      editButton.type = 'button';
-      editButton.className = 'button';
-      editButton.textContent = 'Edit Pending Listing';
-      editButton.addEventListener('click', () => openListingEditor(item));
-      entry.appendChild(editButton);
+    if (['pending','approved','published'].includes(String(item.status || '').toLowerCase())) {
+      const viewLink = document.createElement('a');
+      viewLink.className = 'button';
+      viewLink.href = 'product.html?id=' + encodeURIComponent(String(item.id));
+      viewLink.textContent = document.documentElement.lang === 'ar' ? 'عرض الإعلان' : 'View listing';
+      viewLink.style.cssText = 'display:inline-block;margin:8px 8px 8px 0';
+      entry.appendChild(viewLink);
+      if (['pending','approved'].includes(String(item.status || '').toLowerCase())) {
+        const editButton = document.createElement('button');
+        editButton.type = 'button';
+        editButton.className = 'button';
+        editButton.textContent = document.documentElement.lang === 'ar' ? 'تعديل الإعلان' : 'Edit listing';
+        editButton.addEventListener('click', () => openListingEditor(item));
+        entry.appendChild(editButton);
+      }
     }
     if (item.status === 'pending') {
       const check = document.createElement('button');
@@ -812,6 +820,7 @@ function openListingEditor(item) {
   document.getElementById('editDescription').value = item.description || '';
   document.getElementById('editPrice').value = item.price || '';
   document.getElementById('editListingId').value = item.id;
+  document.getElementById('editListingCard').dataset.originalStatus = item.status || 'pending';
   document.getElementById('editMessage').textContent = '';
   document.getElementById('editAddPhotos').value = '';
   editingOriginalPaths = Array.isArray(item.image_urls) ? item.image_urls.filter(p => typeof p === 'string') : [];
@@ -863,7 +872,7 @@ document.getElementById('editListingForm').addEventListener('submit', async (eve
     const listingId = document.getElementById('editListingId').value;
     // Confirm ownership and pending status before uploading any files.
     const { data: row, error: rowError } = await supabaseClient.from('products')
-      .select('id,image_urls,image_path,status').eq('id', listingId).eq('seller_id', user.id).eq('status', 'pending').single();
+      .select('id,image_urls,image_path,status').eq('id', listingId).eq('seller_id', user.id).in('status', ['pending','approved']).single();
     if (rowError || !row) throw new Error('Listing is no longer editable.');
     const livePaths = Array.isArray(row.image_urls) ? row.image_urls : [];
     if (row.image_path && !livePaths.includes(row.image_path)) livePaths.unshift(row.image_path);
@@ -882,13 +891,21 @@ document.getElementById('editListingForm').addEventListener('submit', async (eve
     const paths = [...editingPhotoPaths, ...uploaded];
     const selectedCover = document.getElementById('editCover').value;
     const cover = paths.includes(selectedCover) ? selectedCover : paths[0];
-    const { data, error } = await supabaseClient.from('products')
-      .update({ title, description, price, image_urls: paths, image_path: cover })
-      .eq('id', listingId).eq('seller_id', user.id).eq('status', 'pending').select('id');
-    if (error) throw error;
-    if (!data?.length) throw new Error('Listing could not be updated. It may no longer be pending.');
+    if (row.status === 'approved') {
+      const { error } = await supabaseClient.rpc('oldora_edit_approved_listing', {
+        p_product_id: Number(listingId), p_title: title, p_description: description,
+        p_price: price, p_image_urls: paths, p_image_path: cover
+      });
+      if (error) throw error;
+    } else {
+      const { data, error } = await supabaseClient.from('products')
+        .update({ title, description, price, image_urls: paths, image_path: cover })
+        .eq('id', listingId).eq('seller_id', user.id).eq('status', 'pending').select('id');
+      if (error) throw error;
+      if (!data?.length) throw new Error('Listing could not be updated. It may no longer be pending.');
+    }
     committed = true;
-    message.textContent = 'Listing and photos saved. Still pending review.';
+    message.textContent = document.documentElement.lang === 'ar' ? 'تم حفظ التعديلات. الإعلان الآن بانتظار الفحص الآلي قبل إعادة اعتماده.' : 'Changes saved. Listing is pending automated review.';
     document.getElementById('editAddPhotos').value = '';
     editingPhotoPaths = paths;
     editingOriginalPaths = [...paths];
