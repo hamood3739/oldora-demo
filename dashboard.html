@@ -147,6 +147,11 @@ main>.muted{background:rgba(0,0,0,.72);border-radius:8px;padding:9px 12px}
 #oldoraInboxAlert[hidden]{display:none!important}
 #oldoraInboxAlert a{color:#e4c990;text-decoration:underline}
 @media(max-width:390px){.oldora-quick-actions{gap:5px;padding:6px}.oldora-quick-link{font-size:12px;padding:7px 3px}}
+.oldora-profile-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;width:min(100% - 28px,650px);margin:14px auto 0;padding:12px 14px;background:rgba(12,11,9,.94);border:1px solid #846b45;border-radius:12px;color:#e7d5b5}
+.oldora-profile-id{display:flex;align-items:center;gap:12px;min-width:0}.oldora-profile-id>div{display:flex;flex-direction:column;gap:3px;min-width:0}.oldora-profile-id strong{overflow-wrap:anywhere}.oldora-profile-avatar{display:grid;place-items:center;flex:none;width:45px;height:45px;border:1px solid #c4a46a;border-radius:50%;background:#32291e;color:#e4c990;font:700 23px Arial}
+.oldora-menu-button{min-width:46px;min-height:46px;border:1px solid #c4a46a;border-radius:10px;background:#211c16;color:#e4c990;font-size:24px;cursor:pointer}
+.oldora-seller-menu{width:min(100% - 28px,650px);margin:6px auto 0;padding:8px;background:#17130f;border:1px solid #846b45;border-radius:10px;display:grid;gap:3px}.oldora-seller-menu[hidden]{display:none!important}.oldora-seller-menu a,.oldora-seller-menu button{display:block;padding:12px;color:#e4c990;background:transparent;border:0;border-radius:7px;text-align:start;text-decoration:none;font:16px Arial;cursor:pointer}.oldora-seller-menu a:hover,.oldora-seller-menu button:hover{background:#342a1c}.oldora-inbox-alert{width:min(100% - 28px,650px);margin:8px auto;padding:10px;background:#282116;border:1px solid #846b45;border-radius:9px}.oldora-inbox-alert a{color:#e4c990}
+#oldoraSalesArchive>summary{cursor:pointer;color:#d6b476;font-weight:bold;padding:5px}#oldoraSalesArchive>div{margin-top:14px}
 </style>
 </head>
 <body>
@@ -155,32 +160,22 @@ main>.muted{background:rgba(0,0,0,.72);border-radius:8px;padding:9px 12px}
     <h1 class="oldora-wordmark">OLDORA</h1><button id="oldoraLanguageSwitch" type="button" aria-label="Switch language">العربية</button>
   </header>
 
-  <nav class="oldora-quick-actions" aria-label="OLDORA account shortcuts"><div id="oldoraInboxAlert" role="status" aria-live="polite" hidden><a id="oldoraInboxLink" href="messages.html?inbox=1">💬 <span id="oldoraInboxLabel">رسائل جديدة · New messages</span></a></div><a id="oldoraPrivateMessagesShortcut" class="oldora-quick-link" href="messages.html?inbox=1"><span data-ar="الرسائل الخاصة" data-en="Private Messages">الرسائل الخاصة</span> <span aria-hidden="true">✉</span></a><span class="oldora-quick-divider" aria-hidden="true"></span><button type="button" class="oldora-quick-link" id="commissionCalculatorToggle" aria-expanded="false" aria-controls="commissionCalculator"><span data-ar="حاسبة العمولة ١٪" data-en="Commission 1%">حاسبة العمولة ١٪</span> <span aria-hidden="true">⌗</span></button></nav><main><p><a href="settings.html" class="button" style="margin:0 0 14px">⚙️ إعدادات الحساب · Account Settings</a></p>
+  <div class="oldora-profile-bar">
+    <div class="oldora-profile-id"><span id="oldoraProfileAvatar" class="oldora-profile-avatar" aria-hidden="true">👤</span><div><span id="oldoraProfileGreeting">مرحباً بك</span><strong id="oldoraProfileName">OLDORA</strong></div></div>
+    <button type="button" id="oldoraSellerMenuButton" class="oldora-menu-button" aria-expanded="false" aria-controls="oldoraSellerMenu" aria-label="قائمة الحساب">☰</button>
+  </div>
+  <nav id="oldoraSellerMenu" class="oldora-seller-menu" hidden aria-label="قائمة حساب البائع">
+    <a href="./#collection" data-ar="عرض السوق" data-en="View Marketplace">عرض السوق</a>
+    <a href="#myListingsSection" data-ar="إعلاناتي" data-en="My Listings">إعلاناتي</a>
+    <a href="#addListingSection" data-ar="إضافة إعلان" data-en="Add Listing">إضافة إعلان</a>
+    <a href="messages.html?inbox=1" data-ar="الرسائل الخاصة" data-en="Private Messages">الرسائل الخاصة</a>
+    <a href="settings.html" data-ar="إعدادات الحساب" data-en="Account Settings">إعدادات الحساب</a>
+    <button type="button" id="oldoraMenuSignOut" data-ar="تسجيل الخروج" data-en="Sign Out">تسجيل الخروج</button>
+  </nav>
+  <div id="oldoraInboxAlert" class="oldora-inbox-alert" role="status" aria-live="polite" hidden><a id="oldoraInboxLink" href="messages.html?inbox=1">💬 <span id="oldoraInboxLabel">رسائل جديدة · New messages</span></a></div>
+  <main>
     <h2>Seller Dashboard</h2>
-    <div style="margin:14px auto 20px;max-width:460px">
-      
-      <section id="commissionCalculator" class="card" hidden aria-label="Commission calculator" style="text-align:left">
-        <h3>OLDORA Commission — 1%</h3>
-        <p>Listings are free. Commission is due only after a successful sale.</p>
-        <label for="commissionSalePrice">Final sale price (SAR)</label>
-        <input id="commissionSalePrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Enter sale price">
-        <p aria-live="polite">OLDORA commission: <strong id="commissionCalculatedAmount" style="color:var(--gold)">—</strong></p>
-      </section>
-    </div>
-    <p><a class="button" href="./#collection">View Marketplace</a></p>
-    <p class="muted">
-      Manage your timeless treasures.
-    </p>
-
-    <section class="card" aria-labelledby="commissionHistoryHeading">
-      <h3 id="commissionHistoryHeading">My Sales & Commissions</h3>
-      <p class="muted">Your completed sales and OLDORA's 1% commission. A due commission is not a payment confirmation.</p>
-      <p id="commissionHistoryStatus" role="status">Loading commission history...</p>
-      <div id="commissionHistory" style="display:grid;gap:12px"></div>
-      <p id="commissionHistoryTotal" style="color:var(--gold);font-weight:bold"></p>
-    </section>
-
-    <section class="card">
+    <section class="card" id="myListingsSection">
       <h3>My Listings</h3>
       <label for="listingSearch">Search my listings</label>
       <input id="listingSearch" type="search" placeholder="Search by item name" autocomplete="off">
@@ -201,6 +196,18 @@ main>.muted{background:rgba(0,0,0,.72);border-radius:8px;padding:9px 12px}
         Listings are reviewed before becoming publicly visible.
       </p>
     </section>
+
+    <details class="card" id="oldoraSalesArchive"><summary data-ar="سجل المبيعات والعمولات" data-en="Sales and commission history">سجل المبيعات والعمولات</summary>
+    <div aria-labelledby="commissionHistoryHeading">
+      <h3 id="commissionHistoryHeading">My Sales & Commissions</h3>
+      <p class="muted">Your completed sales and OLDORA's 1% commission. A due commission is not a payment confirmation.</p>
+      <p id="commissionHistoryStatus" role="status">Loading commission history...</p>
+      <div id="commissionHistory" style="display:grid;gap:12px"></div>
+      <p id="commissionHistoryTotal" style="color:var(--gold);font-weight:bold"></p>
+    </div
+
+
+    </details>
 
     <section class="card" id="editListingCard" hidden>
       <h3>Edit Pending Listing</h3>
@@ -225,7 +232,7 @@ main>.muted{background:rgba(0,0,0,.72);border-radius:8px;padding:9px 12px}
       </form>
     </section>
 
-    <section class="card">
+    <section id="addListingSection" class="card">
       <h3>Add a Vintage Item</h3>
       <p>All OLDORA items must be at least 20 years old. Listings undergo automated checks.</p>
       <form id="listingForm">
@@ -348,6 +355,9 @@ async function checkLogin() {
     }
     const user = sessionData.session.user;
     account.textContent = 'Signed in as: ' + (user.email || 'OLDORA seller');
+    const displayName = String(user.user_metadata?.display_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'OLDORA').slice(0,50);
+    document.getElementById('oldoraProfileName').textContent = displayName;
+    document.getElementById('oldoraProfileAvatar').textContent = displayName.trim().charAt(0).toUpperCase() || '👤';
     const results = await Promise.allSettled([
       loadMyListings(user.id),
       loadCommissionHistory(user.id)
@@ -912,6 +922,18 @@ document.getElementById('signOutButton').addEventListener('click', async () => {
   }
 });
 
+document.getElementById('oldoraSellerMenuButton').addEventListener('click', () => {
+  const menu = document.getElementById('oldoraSellerMenu');
+  menu.hidden = !menu.hidden;
+  document.getElementById('oldoraSellerMenuButton').setAttribute('aria-expanded', String(!menu.hidden));
+});
+document.getElementById('oldoraSellerMenu').addEventListener('click', e => {
+  if (e.target.closest('a')) {
+    document.getElementById('oldoraSellerMenu').hidden = true;
+    document.getElementById('oldoraSellerMenuButton').setAttribute('aria-expanded','false');
+  }
+});
+document.getElementById('oldoraMenuSignOut').addEventListener('click', () => document.getElementById('signOutButton').click());
 checkLogin();
 
 const photosInput = document.getElementById('itemPhotos');
@@ -1081,19 +1103,6 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
 });
 
 
-document.getElementById('commissionCalculatorToggle').addEventListener('click', () => {
-  const panel = document.getElementById('commissionCalculator');
-  panel.hidden = !panel.hidden;
-  document.getElementById('commissionCalculatorToggle').setAttribute('aria-expanded', String(!panel.hidden));
-});
-document.getElementById('commissionSalePrice').addEventListener('input', (event) => {
-  const raw = event.target.value;
-  const amount = Number(raw);
-  document.getElementById('commissionCalculatedAmount').textContent =
-    raw !== '' && Number.isFinite(amount) && amount >= 0
-      ? (Math.round(amount) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' SAR'
-      : '—';
-});
 
 </script>
 
