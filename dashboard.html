@@ -248,7 +248,7 @@ main>.muted{background:rgba(0,0,0,.72);border-radius:8px;padding:9px 12px}
         <p class="muted">Video upload is coming later; please submit photos only for now.</p>
         <p id="mediaMessage" class="muted" role="status" aria-live="polite">Photos are stored privately until review. Video uploads are not enabled yet.</p>
 
-        <label for="itemTitle">Item title</label>
+        <label for="itemCity">📍 مدينة السلعة · Item city (required)</label><input id="itemCity" list="oldoraSaudiCities" maxlength="80" required autocomplete="address-level2" placeholder="اختر أو اكتب المدينة · Select or type a city"><datalist id="oldoraSaudiCities"><option value="الرياض"><option value="جدة"><option value="مكة المكرمة"><option value="المدينة المنورة"><option value="الدمام"><option value="الخبر"><option value="الظهران"><option value="الأحساء"><option value="الطائف"><option value="أبها"><option value="خميس مشيط"><option value="جازان"><option value="نجران"><option value="الباحة"><option value="تبوك"><option value="حائل"><option value="بريدة"><option value="عنيزة"><option value="سكاكا"><option value="عرعر"><option value="ينبع"><option value="الجبيل"><option value="القطيف"><option value="حفر الباطن"><option value="الخرج"><option value="بيشة"><option value="محايل عسير"><option value="القنفذة"><option value="رابغ"><option value="العلا"><option value="أملج"><option value="الرس"><option value="الدوادمي"><option value="وادي الدواسر"><option value="شرورة"><option value="صبيا"><option value="أبو عريش"></datalist><p class="muted">City only — never enter a street address or home location. المدينة فقط دون العنوان التفصيلي.</p><label for="itemTitle">Item title</label>
         <input id="itemTitle" maxlength="120" required>
         <label for="itemDescription">Description</label>
         <textarea id="itemDescription" rows="4" required></textarea>
@@ -484,7 +484,7 @@ async function loadMyListings(userId) {
   status.textContent = 'Loading your listings...';
   container.replaceChildren();
   const { data, error } = await supabaseClient.from('products')
-    .select('id,title,price,status,created_at,image_path,image_urls,description')
+    .select('id,title,price,status,created_at,image_path,image_urls,description,city')
     .eq('seller_id', userId)
     .order('created_at', { ascending: false });
   if (error) {
@@ -901,6 +901,7 @@ document.getElementById('checkListing').addEventListener('click', () => {
   const photos = Array.from(document.getElementById('itemPhotos').files);
   const minAge = 20;
   const maxYear = new Date().getFullYear() - minAge;
+  if (!get('itemCity')) issues.push('Select the item city.');
   if (!get('itemTitle')) issues.push('Add an item title.');
   if (!get('itemDescription')) issues.push('Add a description.');
   if (!(Number(get('itemPrice')) > 0)) issues.push('Enter a valid price.');
@@ -928,6 +929,8 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
   }
   const button = document.getElementById('listingSubmit');
   const message = document.getElementById('listingMessage');
+  const city = document.getElementById('itemCity').value.trim();
+  if (!city || city.length > 80) { document.getElementById('listingMessage').textContent = 'Please enter the city where the item is located.'; return; }
   const age = Number(document.getElementById('itemAge').value);
   const minAge = 20;
   if (!Number.isInteger(age) || age < minAge) {
@@ -1002,6 +1005,7 @@ document.getElementById('listingForm').addEventListener('submit', async (event) 
     }
     const record = {
       seller_id: user.id,
+      city,
       image_path: uploadedPaths[selectedCover],
       image_urls: uploadedPaths,
       title: document.getElementById('itemTitle').value.trim(),
