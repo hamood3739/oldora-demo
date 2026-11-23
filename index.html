@@ -66,7 +66,7 @@ body::before{content:"";position:fixed;z-index:-1;inset:0;pointer-events:none;ba
 <section id="collection">
 <h2 data-i18n="discover">Discover Vintage Treasures</h2>
 <div class="search-row"><input id="search" type="search" aria-label="Search listings" placeholder="Search vintage treasures..." autocomplete="off"><select id="category" aria-label="Filter by category"><option value="">All categories</option></select></div>
-<div id="categories" class="categories" aria-label="Popular categories"></div>
+<div style="margin:12px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><label for="cityFilter" id="cityFilterLabel" style="color:#e1c18a;font:14px Arial,sans-serif">📍 Item city</label><select id="cityFilter" aria-label="Filter by item city" style="max-width:290px"><option value="">All cities</option></select></div><div id="categories" class="categories" aria-label="Popular categories"></div>
 <p id="count" class="meta" role="status">Loading published treasures...</p>
 <div id="products" class="grid"></div>
 <div id="empty" class="message" hidden></div>
@@ -98,9 +98,11 @@ function applyLanguage(lang){
  document.querySelectorAll('#categories button[data-value]').forEach(button=>{
    button.textContent=button.dataset.value?categoryLabel(button.dataset.value):translations[currentLang].allChip;
  });
+ document.getElementById('cityFilterLabel').textContent=currentLang==='ar'?'📍 مدينة السلعة':'📍 Item city';cityFilter.options[0].textContent=currentLang==='ar'?'جميع المدن':'All cities';
  render();
 }
 document.getElementById('languageToggle').addEventListener('click',()=>applyLanguage(currentLang==='en'?'ar':'en'));
+const cityFilter=document.getElementById('cityFilter');
 const select=document.getElementById('category'),chips=document.getElementById('categories'),grid=document.getElementById('products'),empty=document.getElementById('empty'),count=document.getElementById('count'),search=document.getElementById('search');
 categories.forEach(c=>select.add(new Option(c,c)));
 ['All',...categories.slice(0,7)].forEach(c=>{const b=document.createElement('button');b.type='button';b.className='category';b.textContent=c;b.dataset.value=c==='All'?'':c;b.addEventListener('click',()=>{select.value=b.dataset.value;render()});chips.append(b)});
@@ -108,7 +110,7 @@ let listings=[],loadFailed=false;
 function render(){
 const q=search.value.trim().toLocaleLowerCase(),cat=select.value;
 chips.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.value===cat)));
-const shown=listings.filter(x=>(!cat||x.category===cat)&&(!q||(x.title||'').toLocaleLowerCase().includes(q)||(x.description||'').toLocaleLowerCase().includes(q)));
+const shown=listings.filter(x=>(!cat||x.category===cat)&&(!cityFilter.value||x.city===cityFilter.value)&&(!q||(x.title||'').toLocaleLowerCase().includes(q)||(x.description||'').toLocaleLowerCase().includes(q)));
 grid.replaceChildren();empty.hidden=true;
 count.textContent=translations[currentLang].showing+' '+shown.length+' '+translations[currentLang].published+' '+(shown.length===1?translations[currentLang].item:translations[currentLang].items);
 if(!shown.length){empty.hidden=false;empty.textContent=loadFailed?translations[currentLang].failed:listings.length?translations[currentLang].noMatch:translations[currentLang].noItems;return}
@@ -123,18 +125,19 @@ if(item.image_path&&typeof item.image_path==='string'&&!item.image_path.includes
 const h=document.createElement('h3');h.textContent=item.title||'Vintage item';
 const p=document.createElement('p');p.className='price';p.textContent='SAR '+Number(item.price||0).toFixed(2);
 const meta=document.createElement('p');meta.className='meta';meta.textContent=item.category?categoryLabel(item.category):(currentLang==='ar'?'مقتنيات قديمة':'Vintage collectible');
-const badge=document.createElement('p');badge.className='verification'+(item.age_verified===true?' verified':'');badge.textContent=translations[currentLang][item.age_verified===true?'verifiedAge':'notFullyVerified'];badge.title=item.age_verified===true?'Age verification recorded by OLDORA.':'The reported age has not been independently confirmed.';card.append(h,p,meta,badge);const link=document.createElement('a');link.className='btn';link.href='product.html?id='+encodeURIComponent(String(item.id));link.textContent=translations[currentLang].view;link.setAttribute('aria-label',(currentLang==='ar'?'عرض تفاصيل ':'View details for ')+(item.title||'vintage item'));card.append(link);grid.append(card)
+const cityMeta=document.createElement('p');cityMeta.className='meta';cityMeta.textContent='📍 '+(item.city||(currentLang==='ar'?'المدينة غير محددة':'City not specified'));
+const badge=document.createElement('p');badge.className='verification'+(item.age_verified===true?' verified':'');badge.textContent=translations[currentLang][item.age_verified===true?'verifiedAge':'notFullyVerified'];badge.title=item.age_verified===true?'Age verification recorded by OLDORA.':'The reported age has not been independently confirmed.';card.append(h,p,meta,cityMeta,badge);const link=document.createElement('a');link.className='btn';link.href='product.html?id='+encodeURIComponent(String(item.id));link.textContent=translations[currentLang].view;link.setAttribute('aria-label',(currentLang==='ar'?'عرض تفاصيل ':'View details for ')+(item.title||'vintage item'));card.append(link);grid.append(card)
 });
 }
-search.addEventListener('input',render);select.addEventListener('change',render);
+search.addEventListener('input',render);select.addEventListener('change',render);cityFilter.addEventListener('change',render);
 const client=window.supabase?.createClient('https://hakjlkltjwvatzgasvos.supabase.co','sb_publishable_ZHSA7hEPPW7GCZUwZMDWKg_2fewANzb',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let hasSession=false;
 function updateAccountLink(){const link=document.getElementById('accountLink');if(!link)return;link.textContent=translations[currentLang][hasSession?'account':'signin'];link.href=hasSession?'dashboard.html':'auth.html';}
 if(client){client.auth.getSession().then(({data,error})=>{hasSession=!error&&!!data?.session?.user;updateAccountLink()}).catch(()=>{});client.auth.onAuthStateChange((_event,session)=>{hasSession=!!session;updateAccountLink()});}
 (async()=>{if(!client){loadFailed=true;applyLanguage(localStorage.getItem('oldora_language')==='ar'?'ar':'en');return}
 try{
-const {data,error}=await client.from('products').select('id,title,description,price,category,image_path,age_verified').eq('status','approved').order('created_at',{ascending:false}).limit(100);
-if(error)throw error;listings=data||[];
+const {data,error}=await client.from('products').select('id,title,description,price,category,image_path,age_verified,city').eq('status','approved').order('created_at',{ascending:false}).limit(100);
+if(error)throw error;listings=data||[];[...new Set(listings.map(x=>x.city).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar')).forEach(c=>cityFilter.add(new Option(c,c)));
 }catch(e){loadFailed=true;console.error('Unable to load public listings',e)}
 applyLanguage(localStorage.getItem('oldora_language')==='ar'?'ar':'en')
 })();
