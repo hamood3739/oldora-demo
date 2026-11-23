@@ -574,7 +574,7 @@ async function loadMyListings(userId) {
     const closeButton = document.createElement('button');
     closeButton.type = 'button';
     closeButton.className = 'button';
-    closeButton.style.cssText = 'margin-top:12px;border:1px solid #b38a72;background:#261c18;color:#f0c6ac;display:inline-flex;align-items:center;gap:7px';
+    closeButton.style.cssText = 'margin:8px 0;padding:12px;border:1px solid #b38a72;background:#261c18;color:#f0c6ac;display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:44px';
     const listingLang = () => { try { return localStorage.getItem('oldora_language') === 'ar' ? 'ar' : 'en'; } catch (e) { return document.documentElement.lang === 'ar' ? 'ar' : 'en'; } };
     const label = (ar, en) => listingLang() === 'ar' ? ar : en;
     closeButton.textContent = label('🗑 حذف / إنهاء الإعلان', '🗑 Remove / End Listing');
@@ -669,7 +669,7 @@ async function loadMyListings(userId) {
       entry.appendChild(panel);
       reason.focus();
     });
-    if (!['sold','withdrawn'].includes(String(item.status || '').toLowerCase())) entry.appendChild(closeButton);
+    if (!['sold','withdrawn'].includes(String(item.status || '').toLowerCase())) { entry.insertBefore(closeButton, actions); }
 
     const previewLink = document.createElement('a');
     previewLink.className = 'button';
