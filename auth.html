@@ -102,7 +102,8 @@ body>h1.oldora-logo-heading{display:none!important}
     applyAuthLanguage(authLanguage);
     passwordInput.minLength = 1;
     const requestedNext = new URLSearchParams(location.search).get('next');
-    const safeNext = requestedNext && /^messages\.html(?:\?(?:product|listing)=[0-9]+)?$/.test(requestedNext) ? requestedNext : 'dashboard.html';
+    const isEmailConfirmation = new URLSearchParams(location.search).get('verified') === '1';
+    const safeNext = isEmailConfirmation ? 'index.html' : (requestedNext && /^messages\.html(?:\?(?:product|listing)=[0-9]+)?$/.test(requestedNext) ? requestedNext : 'dashboard.html');
     // Returning sellers should see Log In, not the Create Account form.
     (async () => {
       try {
@@ -159,7 +160,7 @@ body>h1.oldora-logo-heading{display:none!important}
           supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
         }
         const result = signUpMode
-          ? await supabaseClient.auth.signUp({ email, password, options: { emailRedirectTo: new URL('auth.html', window.location.href).origin + '/oldora-demo/auth.html' } })
+          ? await supabaseClient.auth.signUp({ email, password, options: { emailRedirectTo: new URL('auth.html?verified=1', window.location.href).href } })
           : await supabaseClient.auth.signInWithPassword({ email, password });
         if (result.error) {
           message.textContent = result.error.message;
