@@ -85,7 +85,7 @@ body>h1.oldora-logo-heading{display:none!important}
       en: {email:'Email Address',password:'Password',passwordHint:'Use at least 12 characters, including uppercase and lowercase letters and a number.',back:'Back to OLDORA',create:'Create Account',welcome:'Welcome Back',signup:'Sign Up',login:'Log In',have:'Already have an account? Log In',newAccount:'New to OLDORA? Create Account',wait:'Please wait...',created:'Account created. Please check your email if confirmation is required.',connection:'Connection error. Please try again.',library:'Supabase library did not load.'},
       ar: {email:'البريد الإلكتروني',password:'كلمة المرور',passwordHint:'استخدم ١٢ حرفًا على الأقل، تتضمن أحرفًا إنجليزية كبيرة وصغيرة ورقمًا.',back:'العودة إلى OLDORA',create:'إنشاء حساب',welcome:'مرحبًا بعودتك',signup:'إنشاء الحساب',login:'تسجيل الدخول',have:'لديك حساب بالفعل؟ سجّل الدخول',newAccount:'ليس لديك حساب؟ أنشئ حسابًا',wait:'يرجى الانتظار...',created:'تم إنشاء الحساب. تحقق من بريدك الإلكتروني إذا كان تأكيد الحساب مطلوبًا.',connection:'خطأ في الاتصال. حاول مرة أخرى.',library:'تعذر تحميل خدمة تسجيل الدخول.'}
     };
-    let authLanguage = localStorage.getItem('oldora_language') === 'ar' ? 'ar' : 'en';
+    let authLanguage = localStorage.getItem('oldora_language') === 'en' ? 'en' : 'ar';
     function authLabel(key) { return authText[authLanguage][key]; }
     function applyAuthLanguage(lang) {
       authLanguage = lang === 'ar' ? 'ar' : 'en';
