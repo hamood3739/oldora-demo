@@ -16,7 +16,7 @@ function syncCategoryOptions(){
 }
 const originals=new WeakMap();
 const excluded='script,style,noscript,textarea,code,pre,#description,#title,#messages .bubble,#myListings .seller-listing__title';
-let lang=localStorage.getItem('oldora_language')==='ar'?'ar':'en';
+let lang=localStorage.getItem('oldora_language')==='en'?'en':'ar';
 function translate(input){
  const trimmed=input.trim();if(!trimmed)return input;
  let value=dictionary[trimmed];
