@@ -80,6 +80,9 @@ function apply(next){
  lang=next==='ar'?'ar':'en';localStorage.setItem('oldora_language',lang);
  document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
  const pageTitle=document.querySelector('title');if(pageTitle){const base=pageTitle.dataset.oldoraOriginalTitle||pageTitle.textContent;pageTitle.dataset.oldoraOriginalTitle=base;pageTitle.textContent=lang==='ar'?translate(base):base;}
+ document.querySelectorAll('[data-ar][data-en]').forEach(el=>{el.textContent=lang==='ar'?el.dataset.ar:el.dataset.en;});
+ document.getElementById('oldoraProfileGreeting')?.replaceChildren(document.createTextNode(lang==='ar'?'مرحباً بك':'Welcome'));
+ document.getElementById('oldoraSellerMenuButton')?.setAttribute('aria-label',lang==='ar'?'قائمة الحساب':'Account menu');
  document.querySelectorAll('.oldora-wordmark').forEach(el=>{el.textContent=lang==='ar'?'أولدورا':'OLDORA';});
  const toggle=document.getElementById('oldoraLanguageSwitch');
  if(toggle)toggle.textContent=lang==='ar'?'English':'العربية';
