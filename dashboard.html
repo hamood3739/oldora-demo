@@ -152,6 +152,7 @@ main>.muted{background:rgba(0,0,0,.72);border-radius:8px;padding:9px 12px}
 .oldora-menu-button{min-width:46px;min-height:46px;border:1px solid #c4a46a;border-radius:10px;background:#211c16;color:#e4c990;font-size:24px;cursor:pointer}
 .oldora-seller-menu{width:min(100% - 28px,650px);margin:6px auto 0;padding:8px;background:#17130f;border:1px solid #846b45;border-radius:10px;display:grid;gap:3px}.oldora-seller-menu[hidden]{display:none!important}.oldora-seller-menu a,.oldora-seller-menu button{display:block;padding:12px;color:#e4c990;background:transparent;border:0;border-radius:7px;text-align:start;text-decoration:none;font:16px Arial;cursor:pointer}.oldora-seller-menu a:hover,.oldora-seller-menu button:hover{background:#342a1c}.oldora-inbox-alert{width:min(100% - 28px,650px);margin:8px auto;padding:10px;background:#282116;border:1px solid #846b45;border-radius:9px}.oldora-inbox-alert a{color:#e4c990}
 #oldoraSalesArchive>summary{cursor:pointer;color:#d6b476;font-weight:bold;padding:5px}#oldoraSalesArchive>div{margin-top:14px}
+.oldora-listing-action{box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:52px!important;margin:10px 0 0!important;padding:12px 16px!important;border:0!important;border-radius:8px!important;background:var(--gold)!important;color:var(--black)!important;text-align:center!important;text-decoration:none!important;font:16px/1.4 Arial,sans-serif!important;cursor:pointer}
 </style>
 </head>
 <body>
@@ -688,12 +689,12 @@ async function loadMyListings(userId) {
       viewLink.className = 'button';
       viewLink.href = 'product.html?id=' + encodeURIComponent(String(item.id));
       viewLink.textContent = document.documentElement.lang === 'ar' ? 'عرض الإعلان' : 'View listing';
-      viewLink.style.cssText = 'display:inline-block;margin:8px 8px 8px 0';
+      viewLink.classList.add('oldora-listing-action');
       entry.appendChild(viewLink);
       if (['pending','approved'].includes(String(item.status || '').toLowerCase())) {
         const editButton = document.createElement('button');
         editButton.type = 'button';
-        editButton.className = 'button';
+        editButton.className = 'button oldora-listing-action';
         editButton.textContent = document.documentElement.lang === 'ar' ? 'تعديل الإعلان' : 'Edit listing';
         editButton.addEventListener('click', () => openListingEditor(item));
         entry.appendChild(editButton);
